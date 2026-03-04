@@ -1,62 +1,62 @@
 /**
- * Shared message and part types — platform-agnostic.
+ * Core types — re-exports AI SDK v6 UIMessage types as the canonical types.
  *
- * These types are designed to be compatible with AI SDK v6's UIMessage
- * but do not depend on it directly, allowing framework-agnostic usage.
+ * Also provides convenience aliases and backward-compatible deprecated aliases.
  */
 
-/** A single text content part */
-export interface TextPart {
-  type: "text";
-  text: string;
+// ---------------------------------------------------------------------------
+// AI SDK type re-exports
+// ---------------------------------------------------------------------------
+
+export type {
+  ChatStatus,
+  DataUIPart,
+  DynamicToolUIPart,
+  FileUIPart,
+  ReasoningUIPart,
+  SourceDocumentUIPart,
+  SourceUrlUIPart,
+  StepStartUIPart,
+  TextUIPart,
+  ToolUIPart,
+  UIDataTypes,
+  UIMessage,
+  UIMessagePart,
+  UIToolInvocation,
+  UITools,
+} from "ai";
+
+export {
+  getStaticToolName,
+  getToolName,
+  isDataUIPart,
+  isFileUIPart,
+  isReasoningUIPart,
+  isStaticToolUIPart,
+  isTextUIPart,
+  isToolUIPart,
+} from "ai";
+
+/** Check if a message part is a dynamic tool part */
+export function isDynamicToolUIPart(part: {
+  type: string;
+}): part is import("ai").DynamicToolUIPart {
+  return part.type === "dynamic-tool";
 }
 
-/** A reasoning/thinking part (CoT) */
-export interface ReasoningPart {
-  type: "reasoning";
-  text: string;
-  /** Whether the reasoning is still streaming */
-  isStreaming?: boolean;
-}
+// ---------------------------------------------------------------------------
+// Convenience aliases (default generics)
+// ---------------------------------------------------------------------------
 
-/** A tool call part */
-export interface ToolCallPart {
-  type: "tool-call";
-  toolCallId: string;
-  toolName: string;
-  args: unknown;
-  result?: unknown;
-  state?: "partial-call" | "call" | "result" | "error";
-  /** Parent tool call ID for nested agent patterns */
-  parentToolCallId?: string;
-}
+import type { UIDataTypes, UIMessage, UIMessagePart, UITools } from "ai";
 
-/** A named data part (for custom UI rendering) */
-export interface DataPart<T = unknown> {
-  type: "data";
-  name: string;
-  data: T;
-}
+/** UIMessage with all defaults — the most common usage */
+export type AnyUIMessage = UIMessage;
 
-/** A source/citation part */
-export interface SourcePart {
-  type: "source";
-  url: string;
-  title?: string;
-  description?: string;
-}
+/** UIMessagePart with all defaults */
+export type AnyUIMessagePart = UIMessagePart<UIDataTypes, UITools>;
 
-/** Union of all supported message part types */
-export type MessagePart = TextPart | ReasoningPart | ToolCallPart | DataPart | SourcePart;
-
-/** Role of a message */
-export type MessageRole = "user" | "assistant" | "system";
-
-/** A single message in a conversation */
-export interface BaseMessage {
-  id: string;
-  role: MessageRole;
-  parts: MessagePart[];
-  createdAt?: Date;
-  metadata?: Record<string, unknown>;
+/** Extract the data part name from a DataUIPart (strips 'data-' prefix) */
+export function getDataPartName(part: { type: string }): string {
+  return part.type.startsWith("data-") ? part.type.slice(5) : part.type;
 }

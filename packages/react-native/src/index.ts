@@ -1,26 +1,13 @@
 // @agent-ui-sdk/react-native
 // React Native bindings for Agent UI SDK
+//
+// Core types/functions: import from "@agent-ui-sdk/core"
+// Store/Provider/Hooks: import from "@agent-ui-sdk/core/react"
+// AI SDK bridge:        import from "@agent-ui-sdk/core/ai-sdk"
 
-// Re-export core types
-export type {
-  BaseMessage,
-  DataPart,
-  GroupRule,
-  MessagePart,
-  PartGroup,
-  ReasoningPart,
-  SourcePart,
-  TextPart,
-  ToolCallPart,
-} from "@agent-ui-sdk/core";
-export { useDataUI } from "./hooks/use-data-ui";
-// Part grouping hook
-export { useGroupedParts } from "./hooks/use-grouped-parts";
-// Message hooks
-export { useMessageBranch } from "./hooks/use-message-branch";
-// Segment cache
-export { useSegmentCache } from "./hooks/use-segment-cache";
-// Registry hooks
-export { useToolUI } from "./hooks/use-tool-ui";
-// Context & Provider
-export { AgentUIProvider, useAgentUI } from "./provider";
+// RN-specific hooks
+export type { UseSmoothOptions, UseSmoothReturn } from "./hooks/use-smooth";
+export { useSmooth } from "./hooks/use-smooth";
+
+// All RN primitives
+export * from "./primitives";

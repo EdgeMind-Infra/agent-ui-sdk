@@ -1,5 +1,5 @@
-import { type GroupRule, groupParts, type MessagePart, type PartGroup } from "@agent-ui-sdk/core";
 import { useMemo } from "react";
+import { type AnyUIMessagePart, type GroupRule, groupParts, type PartGroup } from "../../index";
 
 /**
  * Hook that groups message parts using the grouping engine.
@@ -14,6 +14,6 @@ import { useMemo } from "react";
  * ]);
  * ```
  */
-export function useGroupedParts(parts: MessagePart[], rules: GroupRule[]): PartGroup[] {
+export function useGroupedParts(parts: AnyUIMessagePart[], rules: GroupRule[]): PartGroup[] {
   return useMemo(() => groupParts(parts, rules), [parts, rules]);
 }

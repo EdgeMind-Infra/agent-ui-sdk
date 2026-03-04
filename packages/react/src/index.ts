@@ -1,26 +1,49 @@
 // @agent-ui-sdk/react
 // React web bindings for Agent UI SDK
+//
+// Core types/functions: import from "@agent-ui-sdk/core"
+// Store/Provider/Hooks: import from "@agent-ui-sdk/core/react"
+// AI SDK bridge:        import from "@agent-ui-sdk/core/ai-sdk"
 
-// Re-export core types
-export type {
-  BaseMessage,
-  DataPart,
-  GroupRule,
-  MessagePart,
-  PartGroup,
-  ReasoningPart,
-  SourcePart,
-  TextPart,
-  ToolCallPart,
-} from "@agent-ui-sdk/core";
-export { useDataUI } from "./hooks/use-data-ui";
-// Part grouping hook
-export { useGroupedParts } from "./hooks/use-grouped-parts";
-// Message hooks — branching & navigation
-export { useMessageBranch } from "./hooks/use-message-branch";
-// Segment cache
-export { useSegmentCache } from "./hooks/use-segment-cache";
-// Registry hooks — register custom Tool/Data renderers
-export { useToolUI } from "./hooks/use-tool-ui";
-// Context & Provider
-export { AgentUIProvider, useAgentUI } from "./provider";
+// Primitives (Web-specific)
+export {
+  // ActionBar
+  ActionBar,
+  type ApprovalState,
+  // Attachment
+  Attachment,
+  type AttachmentData,
+  Attachments,
+  type AttachmentVariant,
+  // BranchPicker
+  BranchPicker,
+  // CodeBlock
+  CodeBlock,
+  // Composer
+  Composer,
+  type ComposerAttachment,
+  // Confirmation
+  Confirmation,
+  getMediaCategory,
+  loadStreamdownPlugins,
+  // MarkdownRenderer
+  MarkdownRenderer,
+  type MediaCategory,
+  // Message
+  Message,
+  type PartComponentMap,
+  // Reasoning
+  Reasoning,
+  // Thread
+  Thread,
+  // ToolCall
+  ToolCall,
+  ToolGroup,
+  useAttachmentContext,
+  useComposerContext,
+  useConfirmationContext,
+  useMessageContext,
+  useReasoningContext,
+  useThreadContext,
+  useToolCallContext,
+} from "./primitives";

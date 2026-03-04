@@ -21,7 +21,7 @@ export interface UseDataUIOptions<T = unknown> {
  * ```
  */
 export function useDataUI<T = unknown>(options: UseDataUIOptions<T>): void {
-  const { registry } = useAgentUI();
+  const registry = useAgentUI((s) => s.registry);
 
   useEffect(() => {
     return registry.registerDataUI({

@@ -5,14 +5,14 @@
  * define rules declaratively and let the engine do the grouping.
  */
 
-import type { MessagePart } from "./types";
+import type { AnyUIMessagePart } from "./types";
 
 /** A rule that defines how to group consecutive matching parts */
 export interface GroupRule {
   /** Unique key for this group type */
   key: string;
   /** Predicate: does this part belong to this group? */
-  match: (part: MessagePart, index: number, parts: MessagePart[]) => boolean;
+  match: (part: AnyUIMessagePart, index: number, parts: AnyUIMessagePart[]) => boolean;
 }
 
 /** A group of consecutive parts that matched the same rule */
@@ -20,7 +20,7 @@ export interface PartGroup {
   /** The group rule key */
   key: string;
   /** The grouped parts */
-  parts: MessagePart[];
+  parts: AnyUIMessagePart[];
   /** Start index in the original parts array */
   startIndex: number;
   /** End index (exclusive) in the original parts array */
@@ -49,12 +49,12 @@ const UNGROUPED_KEY = "__ungrouped__";
  * // [{ key: "reasoning", parts: [...] }, { key: "__ungrouped__", parts: [textPart] }, ...]
  * ```
  */
-export function groupParts(parts: MessagePart[], rules: GroupRule[]): PartGroup[] {
+export function groupParts(parts: AnyUIMessagePart[], rules: GroupRule[]): PartGroup[] {
   if (parts.length === 0) return [];
 
   const groups: PartGroup[] = [];
   let currentKey: string | null = null;
-  let currentParts: MessagePart[] = [];
+  let currentParts: AnyUIMessagePart[] = [];
   let currentStart = 0;
 
   for (let i = 0; i < parts.length; i++) {

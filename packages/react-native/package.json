@@ -1,7 +1,7 @@
 {
   "name": "@agent-ui-sdk/react-native",
   "version": "0.1.0",
-  "description": "React Native bindings for Agent UI SDK — hooks for tool/data UI registration, message branching, and AI SDK integration",
+  "description": "React Native primitives for Agent UI SDK",
   "type": "module",
   "sideEffects": false,
   "exports": {
@@ -33,13 +33,7 @@
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
-    "react-native": "*",
-    "@ai-sdk/react": ">=3.0.0"
-  },
-  "peerDependenciesMeta": {
-    "@ai-sdk/react": {
-      "optional": true
-    }
+    "react-native": "*"
   },
   "devDependencies": {
     "@agent-ui-sdk/build-utils": "workspace:*",

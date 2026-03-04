@@ -12,11 +12,11 @@
  * The repository tracks which branch is "active" at each node.
  */
 
-import type { BaseMessage } from "./types";
+import type { AnyUIMessage } from "./types";
 
 /** A node in the message tree */
 export interface MessageNode {
-  message: BaseMessage;
+  message: AnyUIMessage;
   parentId: string | null;
   childIds: string[];
   /** Index of the currently active child branch */
@@ -35,7 +35,7 @@ export class MessageRepository {
   private activeRootIndex = 0;
 
   /** Add or update a message in the tree */
-  addOrUpdateMessage(message: BaseMessage, parentId: string | null): void {
+  addOrUpdateMessage(message: AnyUIMessage, parentId: string | null): void {
     const existing = this.nodes.get(message.id);
 
     if (existing) {
@@ -67,8 +67,8 @@ export class MessageRepository {
   }
 
   /** Get the linear active message thread (following active branches) */
-  getMessages(): BaseMessage[] {
-    const messages: BaseMessage[] = [];
+  getMessages(): AnyUIMessage[] {
+    const messages: AnyUIMessage[] = [];
 
     if (this.rootIds.length === 0) return messages;
 

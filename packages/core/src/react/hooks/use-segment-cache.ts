@@ -1,6 +1,6 @@
-import type { BaseMessage, GroupRule, PartGroup } from "@agent-ui-sdk/core";
-import { groupParts } from "@agent-ui-sdk/core";
 import { useMemo } from "react";
+import type { AnyUIMessage, GroupRule, PartGroup } from "../../index";
+import { groupParts } from "../../index";
 
 /**
  * WeakMap-based cache for message segment computation.
@@ -13,11 +13,11 @@ import { useMemo } from "react";
  * const groups = getSegments(message);
  * ```
  */
-export function useSegmentCache(rules: GroupRule[]): (message: BaseMessage) => PartGroup[] {
-  const cache = useMemo(() => new WeakMap<BaseMessage, PartGroup[]>(), []);
+export function useSegmentCache(rules: GroupRule[]): (message: AnyUIMessage) => PartGroup[] {
+  const cache = useMemo(() => new WeakMap<AnyUIMessage, PartGroup[]>(), []);
 
   return useMemo(
-    () => (message: BaseMessage) => {
+    () => (message: AnyUIMessage) => {
       const cached = cache.get(message);
       if (cached) return cached;
       const groups = groupParts(message.parts, rules);

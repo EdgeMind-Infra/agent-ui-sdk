@@ -1,5 +1,5 @@
-import type { BranchState } from "@agent-ui-sdk/core";
 import { useCallback } from "react";
+import type { BranchState } from "../../index";
 import { useAgentUI } from "../provider";
 
 /**
@@ -12,7 +12,7 @@ import { useAgentUI } from "../provider";
  * ```
  */
 export function useMessageBranch(messageId: string) {
-  const { repository } = useAgentUI();
+  const repository = useAgentUI((s) => s.repository);
 
   const branches: BranchState | null = repository.getBranches(messageId);
 

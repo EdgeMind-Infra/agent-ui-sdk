@@ -23,7 +23,7 @@ export interface UseToolUIOptions<TInput = unknown, TOutput = unknown> {
 export function useToolUI<TInput = unknown, TOutput = unknown>(
   options: UseToolUIOptions<TInput, TOutput>,
 ): void {
-  const { registry } = useAgentUI();
+  const registry = useAgentUI((s) => s.registry);
 
   useEffect(() => {
     return registry.registerToolUI({
