@@ -1,0 +1,27 @@
+{
+  "name": "@agent-ui-sdk/monorepo",
+  "private": true,
+  "packageManager": "pnpm@10.11.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "lint": "biome check .",
+    "lint:fix": "biome check --fix .",
+    "test": "turbo test",
+    "changelog": "git-cliff -o CHANGELOG.md",
+    "ci:version": "changeset version && pnpm install --no-frozen-lockfile",
+    "ci:publish": "turbo build --filter='./packages/*' && changeset publish"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.0.0",
+    "@changesets/cli": "^2.29.0",
+    "@commitlint/cli": "^19.8.0",
+    "@commitlint/config-conventional": "^19.8.0",
+    "lefthook": "^1.11.0",
+    "turbo": "^2.5.0",
+    "typescript": "^5.8.0"
+  }
+}

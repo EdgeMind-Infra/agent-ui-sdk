@@ -1,0 +1,4 @@
+{
+  "extends": "@agent-ui-sdk/build-utils/ts/base",
+  "include": ["src"]
+}

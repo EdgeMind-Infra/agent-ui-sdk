@@ -1,0 +1,9 @@
+{
+  "name": "@agent-ui-sdk/build-utils",
+  "private": true,
+  "version": "0.0.0",
+  "exports": {
+    "./ts/base": "./ts/base.json",
+    "./ts/react": "./ts/react.json"
+  }
+}
