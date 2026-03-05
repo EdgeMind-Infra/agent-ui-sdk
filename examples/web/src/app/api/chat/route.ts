@@ -17,10 +17,25 @@ export async function OPTIONS() {
 }
 
 export async function POST(req: Request) {
-  const { messages }: { messages: UIMessage[] } = await req.json();
+  const {
+    messages,
+    thinking,
+    webSearch,
+  }: { messages: UIMessage[]; thinking?: boolean; webSearch?: boolean } = await req.json();
+
   const result = streamText({
     model: anthropic("claude-opus-4-6"),
     messages: await convertToModelMessages(messages),
+    tools: {
+      ...(webSearch && { web_search: anthropic.tools.webSearch_20260209() }),
+    },
+    ...(thinking && {
+      providerOptions: {
+        anthropic: {
+          thinking: { type: "enabled", budgetTokens: 10000 },
+        },
+      },
+    }),
   });
   return result.toUIMessageStreamResponse({ headers: corsHeaders });
 }

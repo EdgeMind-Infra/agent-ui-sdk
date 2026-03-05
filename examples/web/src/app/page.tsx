@@ -2,8 +2,16 @@
 
 import { Chat, useBranchedChat } from "@agent-ui-sdk/react";
 import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
+import { useRef, useState } from "react";
+
 export default function Home() {
-  const chatHelpers = useChat();
+  const [thinking, setThinking] = useState(false);
+  const [webSearch, setWebSearch] = useState(false);
+  const optionsRef = useRef({ thinking, webSearch });
+  optionsRef.current = { thinking, webSearch };
+  const [transport] = useState(() => new DefaultChatTransport({ body: () => optionsRef.current }));
+  const chatHelpers = useChat({ transport });
   const branchedChat = useBranchedChat({ chatHelpers });
 
   return (
@@ -17,11 +25,12 @@ export default function Home() {
           onRegenerate: (messageId: string) => {
             branchedChat.regenerate?.({ messageId });
           },
-          suggestions: [
-            "What is the meaning of life?",
-            "Explain quantum computing",
-            "Write a haiku about coding",
-          ],
+          enableThinking: true,
+          enableWebSearch: true,
+          thinkingActive: thinking,
+          webSearchActive: webSearch,
+          onThinkingToggle: setThinking,
+          onWebSearchToggle: setWebSearch,
         }}
         className="mx-auto w-full max-w-3xl"
       />

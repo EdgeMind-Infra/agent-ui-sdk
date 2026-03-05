@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckIcon, GlobeIcon } from "lucide-react";
+import { BrainIcon, CheckIcon, GlobeIcon } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import {
   Attachment,
@@ -151,6 +151,9 @@ export function ChatInput({ className }: ChatInputProps) {
     enableAttachments,
     enableSpeechInput,
     onAudioRecorded,
+    enableThinking,
+    thinkingActive,
+    onThinkingToggle,
     enableWebSearch,
     webSearchActive,
     onWebSearchToggle,
@@ -204,6 +207,10 @@ export function ChatInput({ className }: ChatInputProps) {
     setText((prev) => (prev ? `${prev} ${transcript}` : transcript));
   }, []);
 
+  const handleThinkingToggle = useCallback(() => {
+    onThinkingToggle?.(!thinkingActive);
+  }, [onThinkingToggle, thinkingActive]);
+
   const handleWebSearchToggle = useCallback(() => {
     onWebSearchToggle?.(!webSearchActive);
   }, [onWebSearchToggle, webSearchActive]);
@@ -217,7 +224,11 @@ export function ChatInput({ className }: ChatInputProps) {
   );
 
   const hasTools =
-    enableAttachments || enableSpeechInput || enableWebSearch || (models && models.length > 0);
+    enableAttachments ||
+    enableSpeechInput ||
+    enableThinking ||
+    enableWebSearch ||
+    (models && models.length > 0);
 
   return (
     <div className={cn("grid shrink-0 gap-4 pt-4", className)}>
@@ -269,6 +280,15 @@ export function ChatInput({ className }: ChatInputProps) {
                     size="icon-sm"
                     variant="ghost"
                   />
+                )}
+                {enableThinking && (
+                  <PromptInputButton
+                    onClick={handleThinkingToggle}
+                    variant={thinkingActive ? "default" : "ghost"}
+                  >
+                    <BrainIcon size={16} />
+                    <span>Think</span>
+                  </PromptInputButton>
                 )}
                 {enableWebSearch && (
                   <PromptInputButton

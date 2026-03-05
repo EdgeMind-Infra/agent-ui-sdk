@@ -51,6 +51,13 @@ export interface ChatConfig {
   /** Called when audio is recorded (for browsers without Web Speech API). */
   onAudioRecorded?: (audioBlob: Blob) => Promise<string>;
 
+  /** Enable thinking/reasoning mode toggle button. */
+  enableThinking?: boolean;
+  /** Whether thinking mode is currently active. */
+  thinkingActive?: boolean;
+  /** Called when thinking mode is toggled. */
+  onThinkingToggle?: (active: boolean) => void;
+
   /** Enable web search toggle button. */
   enableWebSearch?: boolean;
   /** Whether web search is currently active. */
