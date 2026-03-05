@@ -9,9 +9,7 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "@agent-ui-sdk/core": "workspace:*",
     "@agent-ui-sdk/react-native": "workspace:*",
-    "@agent-ui-sdk/react-native-ui": "workspace:*",
     "@ai-sdk/react": "^3.0.0",
     "ai": "^6.0.0",
     "@react-navigation/native": "^7.1.28",
@@ -31,8 +29,7 @@
     "react-native-reanimated": "4.2.1",
     "react-native-safe-area-context": "~5.6.2",
     "react-native-screens": "~4.23.0",
-    "react-native-web": "~0.21.0",
-    "zustand": "^5.0.0"
+    "react-native-web": "~0.21.0"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",

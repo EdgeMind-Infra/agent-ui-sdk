@@ -1,8 +1,0 @@
-{
-  "extends": "@agent-ui-sdk/build-utils/ts/base",
-  "compilerOptions": {
-    "lib": ["ES2022"],
-    "jsx": "react-native"
-  },
-  "include": ["src"]
-}

@@ -1,7 +1,7 @@
 {
   "name": "@agent-ui-sdk/core",
   "version": "0.1.0",
-  "description": "Platform-agnostic core for Agent UI SDK — message repository, UI registry, part grouping engine",
+  "description": "Platform-agnostic core for Agent UI SDK — segment engine, UI registry, types",
   "type": "module",
   "sideEffects": false,
   "exports": {
@@ -11,28 +11,8 @@
         "default": "./dist/index.js"
       },
       "require": {
-        "types": "./dist/index.d.ts",
+        "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
-      }
-    },
-    "./react": {
-      "import": {
-        "types": "./dist/react/index.d.ts",
-        "default": "./dist/react/index.js"
-      },
-      "require": {
-        "types": "./dist/react/index.d.ts",
-        "default": "./dist/react/index.cjs"
-      }
-    },
-    "./ai-sdk": {
-      "import": {
-        "types": "./dist/ai-sdk/index.d.ts",
-        "default": "./dist/ai-sdk/index.js"
-      },
-      "require": {
-        "types": "./dist/ai-sdk/index.d.ts",
-        "default": "./dist/ai-sdk/index.cjs"
       }
     }
   },
@@ -44,7 +24,7 @@
     "src"
   ],
   "scripts": {
-    "build": "tsdown && tsc -p tsconfig.build.json",
+    "build": "tsdown",
     "dev": "tsdown --watch",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -52,35 +32,18 @@
   },
   "dependencies": {},
   "peerDependencies": {
-    "@ai-sdk/react": ">=3.0.0",
-    "ai": ">=6.0.0",
-    "react": "^18.0.0 || ^19.0.0",
-    "zustand": "^5.0.0"
+    "ai": ">=6.0.0"
   },
   "peerDependenciesMeta": {
-    "@ai-sdk/react": {
-      "optional": true
-    },
     "ai": {
-      "optional": true
-    },
-    "react": {
-      "optional": true
-    },
-    "zustand": {
       "optional": true
     }
   },
   "devDependencies": {
-    "@ai-sdk/react": "^3.0.113",
     "ai": "^6.0.111",
-    "@agent-ui-sdk/build-utils": "workspace:*",
-    "@types/react": "^19.0.0",
-    "react": "^19.0.0",
     "tsdown": "^0.12.0",
-    "vitest": "^3.2.0",
     "typescript": "^5.8.0",
-    "zustand": "^5.0.11"
+    "vitest": "^3.2.0"
   },
   "publishConfig": {
     "access": "public",
