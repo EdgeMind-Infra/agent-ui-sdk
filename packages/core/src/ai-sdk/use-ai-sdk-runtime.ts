@@ -5,28 +5,19 @@
  * This hook syncs messages, status, error, and action callbacks to the store.
  */
 
+import type { UseChatHelpers } from "@ai-sdk/react";
+import type { UIMessage } from "ai";
 import { useEffect, useMemo } from "react";
-import type { ChatStatus, UIMessage } from "../index";
+import { useHistoryAdapterContext, useThreadIdContext } from "../react/adapter-context";
+import { useHistory } from "../react/hooks/use-history";
 import { useAgentUIStoreApi } from "../react/provider";
 import type { RuntimeActions } from "../react/store";
 
-/** Minimal shape of AI SDK useChat return value */
-export interface AISDKChatHelpers {
-  messages: UIMessage[];
-  status: ChatStatus;
-  error?: Error | null;
-  sendMessage?: (input: { text: string }) => void;
-  append?: (message: { role: "user"; content: string }) => void;
-  stop?: () => void;
-  reload?: () => void;
-  regenerate?: () => void;
-  setMessages?: (messages: UIMessage[]) => void;
-  addToolResult?: (options: { toolCallId: string; result: unknown }) => void;
-}
+export type { UseChatHelpers } from "@ai-sdk/react";
 
 export interface UseAISDKRuntimeOptions {
   /** The return value of AI SDK's useChat() */
-  chatHelpers: AISDKChatHelpers;
+  chatHelpers: UseChatHelpers<UIMessage>;
 }
 
 /**
@@ -37,6 +28,11 @@ export interface UseAISDKRuntimeOptions {
  */
 export function useAISDKRuntime({ chatHelpers }: UseAISDKRuntimeOptions): void {
   const store = useAgentUIStoreApi();
+
+  // Bridge history persistence (no-op when adapter or threadId is not provided)
+  const historyAdapter = useHistoryAdapterContext();
+  const threadId = useThreadIdContext();
+  useHistory({ adapter: historyAdapter, chatHelpers, threadId });
 
   // Sync messages — no conversion needed, UIMessage is the canonical type
   useEffect(() => {
@@ -55,37 +51,29 @@ export function useAISDKRuntime({ chatHelpers }: UseAISDKRuntimeOptions): void {
 
   // Map actions
   const actions: RuntimeActions = useMemo(() => {
-    const send =
-      chatHelpers.sendMessage ??
-      (chatHelpers.append
-        ? (input: { text: string }) => chatHelpers.append!({ role: "user", content: input.text })
-        : undefined);
-
     return {
       onNew: (message) => {
-        send?.({ text: message.content });
+        chatHelpers.sendMessage({ text: message.content });
       },
 
       onEdit: (messageId, content) => {
-        const messages = chatHelpers.messages;
-        const idx = messages.findIndex((m) => m.id === messageId);
+        const idx = chatHelpers.messages.findIndex((m) => m.id === messageId);
         if (idx === -1) return;
 
-        const sliced = messages.slice(0, idx);
-        chatHelpers.setMessages?.(sliced);
-        send?.({ text: content });
+        chatHelpers.setMessages(chatHelpers.messages.slice(0, idx));
+        chatHelpers.sendMessage({ text: content });
       },
 
-      onReload: () => {
-        (chatHelpers.regenerate ?? chatHelpers.reload)?.();
+      onRegenerate: () => {
+        chatHelpers.regenerate();
       },
 
       onCancel: () => {
-        chatHelpers.stop?.();
+        chatHelpers.stop();
       },
 
-      onAddToolResult: (toolCallId, result) => {
-        chatHelpers.addToolResult?.({ toolCallId, result });
+      onToolApprovalResponse: (options) => {
+        chatHelpers.addToolApprovalResponse(options);
       },
     };
   }, [chatHelpers]);

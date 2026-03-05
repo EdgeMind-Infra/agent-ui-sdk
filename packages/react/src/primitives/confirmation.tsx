@@ -72,19 +72,19 @@ export function ConfirmationRoot({
 }: ConfirmationRootProps) {
   const [internalState, setInternalState] = useState<ApprovalState>("pending");
   const state = stateProp ?? internalState;
-  const onAddToolResult = useAgentUI((s) => s.actions.onAddToolResult);
+  const onToolApprovalResponse = useAgentUI((s) => s.actions.onToolApprovalResponse);
 
   const approve = useCallback(() => {
     setInternalState("approved");
     onApprove?.(toolCallId);
-    onAddToolResult?.(toolCallId, { approved: true });
-  }, [toolCallId, onApprove, onAddToolResult]);
+    onToolApprovalResponse?.({ id: toolCallId, approved: true });
+  }, [toolCallId, onApprove, onToolApprovalResponse]);
 
   const deny = useCallback(() => {
     setInternalState("denied");
     onDeny?.(toolCallId);
-    onAddToolResult?.(toolCallId, { approved: false });
-  }, [toolCallId, onDeny, onAddToolResult]);
+    onToolApprovalResponse?.({ id: toolCallId, approved: false });
+  }, [toolCallId, onDeny, onToolApprovalResponse]);
 
   const ctx: ConfirmationContextValue = { toolCallId, toolName, state, approve, deny };
 

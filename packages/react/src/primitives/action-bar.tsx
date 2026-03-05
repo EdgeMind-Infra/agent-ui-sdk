@@ -128,11 +128,11 @@ export interface ActionBarReloadProps extends HTMLAttributes<HTMLButtonElement> 
 
 export function ActionBarReload({ children, ...props }: ActionBarReloadProps) {
   const { message } = useMessageContext();
-  const onReload = useAgentUI((s) => s.actions.onReload);
+  const onRegenerate = useAgentUI((s) => s.actions.onRegenerate);
 
   const handleReload = useCallback(() => {
-    onReload?.(message.id);
-  }, [message.id, onReload]);
+    onRegenerate?.();
+  }, [onRegenerate]);
 
   // Only show reload for assistant messages
   if (message.role !== "assistant") return null;

@@ -2,6 +2,16 @@
 // Platform-agnostic core for Agent UI SDK
 
 // ---------------------------------------------------------------------------
+// Adapters — pluggable interfaces for history persistence & thread management
+// ---------------------------------------------------------------------------
+export type { ThreadHistoryAdapter } from "./adapters/thread-history-adapter";
+export type {
+  ThreadListAdapter,
+  ThreadMetadata,
+} from "./adapters/thread-list-adapter";
+export { InMemoryThreadListAdapter } from "./adapters/thread-list-adapter";
+
+// ---------------------------------------------------------------------------
 // Part Grouping — declarative message part grouping engine
 // ---------------------------------------------------------------------------
 export { type GroupRule, groupParts, type PartGroup } from "./grouping";

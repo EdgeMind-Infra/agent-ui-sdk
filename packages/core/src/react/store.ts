@@ -23,14 +23,14 @@ export interface RuntimeActions {
   onNew?: (message: { content: string; attachments?: unknown[] }) => void;
   /** Edit and resend from a specific message */
   onEdit?: (messageId: string, content: string) => void;
-  /** Reload/regenerate the last response */
-  onReload?: (parentId?: string) => void;
+  /** Regenerate the last response */
+  onRegenerate?: () => void;
   /** Cancel the current generation */
   onCancel?: () => void;
   /** Provide feedback on a message */
   onFeedback?: (messageId: string, type: "positive" | "negative") => void;
-  /** Add tool result (for approval flows) */
-  onAddToolResult?: (toolCallId: string, result: unknown) => void;
+  /** Respond to a tool approval request */
+  onToolApprovalResponse?: (options: { id: string; approved: boolean; reason?: string }) => void;
 }
 
 export interface AgentUIState {
@@ -40,6 +40,10 @@ export interface AgentUIState {
   chatStatus: ChatStatus;
   /** Whether the AI is currently generating */
   isRunning: boolean;
+  /** Whether history is being loaded from the adapter */
+  isLoading: boolean;
+  /** Currently active thread ID (managed by useThreadList) */
+  currentThreadId: string | undefined;
   /** Error if chatStatus is "error" */
   error: unknown | null;
   /** Message repository (branch-aware tree) */
@@ -61,6 +65,10 @@ export interface AgentUIActions {
   setError: (error: unknown | null) => void;
   /** Update runtime actions */
   setActions: (actions: RuntimeActions) => void;
+  /** Set the history loading state */
+  setIsLoading: (loading: boolean) => void;
+  /** Set the currently active thread ID */
+  setCurrentThreadId: (id: string | undefined) => void;
   /** Refresh messages from repository (after branch switch) */
   refreshMessages: () => void;
 }
@@ -83,6 +91,8 @@ export function createAgentUIStore(options: CreateAgentUIStoreOptions = {}) {
     messages: options.initialMessages ?? [],
     chatStatus: "ready",
     isRunning: false,
+    isLoading: false,
+    currentThreadId: undefined,
     error: null,
     repository,
     registry,
@@ -108,6 +118,10 @@ export function createAgentUIStore(options: CreateAgentUIStoreOptions = {}) {
     setError: (error) => set({ error }),
 
     setActions: (actions) => set({ actions }),
+
+    setIsLoading: (isLoading) => set({ isLoading }),
+
+    setCurrentThreadId: (currentThreadId) => set({ currentThreadId }),
 
     refreshMessages: () => {
       set({ messages: get().repository.getMessages() });

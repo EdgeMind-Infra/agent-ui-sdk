@@ -129,11 +129,11 @@ export interface ActionBarReloadProps {
 
 export function ActionBarReload({ children, style }: ActionBarReloadProps) {
   const { message } = useMessageContext();
-  const onReload = useAgentUI((s) => s.actions.onReload);
+  const onRegenerate = useAgentUI((s) => s.actions.onRegenerate);
 
   const handleReload = useCallback(() => {
-    onReload?.(message.id);
-  }, [message.id, onReload]);
+    onRegenerate?.();
+  }, [onRegenerate]);
 
   if (message.role !== "assistant") return null;
 

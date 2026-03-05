@@ -1,0 +1,9 @@
+{
+  "extends": "@agent-ui-sdk/build-utils/ts/react",
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src"]
+}

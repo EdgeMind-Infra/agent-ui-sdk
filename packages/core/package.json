@@ -72,8 +72,8 @@
     }
   },
   "devDependencies": {
-    "@ai-sdk/react": "^3.0.41",
-    "ai": "^6.0.68",
+    "@ai-sdk/react": "^3.0.113",
+    "ai": "^6.0.111",
     "@agent-ui-sdk/build-utils": "workspace:*",
     "@types/react": "^19.0.0",
     "react": "^19.0.0",

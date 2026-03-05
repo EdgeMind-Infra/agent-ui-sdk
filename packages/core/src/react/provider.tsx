@@ -1,6 +1,13 @@
 import { createContext, type ReactNode, useContext, useRef } from "react";
 import { useStore } from "zustand";
+import type { ThreadHistoryAdapter } from "../adapters/thread-history-adapter";
+import type { ThreadListAdapter } from "../adapters/thread-list-adapter";
 import type { MessageRepository, UIRegistry } from "../index";
+import {
+  HistoryAdapterContext,
+  ThreadIdContext,
+  ThreadListAdapterContext,
+} from "./adapter-context";
 import {
   type AgentUIStore,
   type AgentUIStoreApi,
@@ -19,17 +26,37 @@ export interface AgentUIProviderProps {
   repository?: MessageRepository;
   /** Optional initial runtime actions */
   actions?: RuntimeActions;
+  /** Optional adapter for persisting thread message history */
+  historyAdapter?: ThreadHistoryAdapter;
+  /** Optional adapter for managing multiple threads */
+  threadListAdapter?: ThreadListAdapter;
+  /** Optional current thread ID (drives useHistory loading) */
+  threadId?: string;
 }
 
 /** Root provider for Agent UI SDK — wraps your chat UI */
-export function AgentUIProvider({ children, registry, repository, actions }: AgentUIProviderProps) {
+export function AgentUIProvider({
+  children,
+  registry,
+  repository,
+  actions,
+  historyAdapter,
+  threadListAdapter,
+  threadId,
+}: AgentUIProviderProps) {
   const storeRef = useRef<AgentUIStoreApi | null>(null);
   if (storeRef.current === null) {
     storeRef.current = createAgentUIStore({ registry, repository, actions });
   }
 
   return (
-    <AgentUIStoreContext.Provider value={storeRef.current}>{children}</AgentUIStoreContext.Provider>
+    <AgentUIStoreContext.Provider value={storeRef.current}>
+      <HistoryAdapterContext.Provider value={historyAdapter ?? null}>
+        <ThreadListAdapterContext.Provider value={threadListAdapter ?? null}>
+          <ThreadIdContext.Provider value={threadId}>{children}</ThreadIdContext.Provider>
+        </ThreadListAdapterContext.Provider>
+      </HistoryAdapterContext.Provider>
+    </AgentUIStoreContext.Provider>
   );
 }
 
