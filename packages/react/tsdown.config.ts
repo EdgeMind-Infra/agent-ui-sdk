@@ -1,3 +1,4 @@
+import path from "node:path";
 import { defineConfig } from "tsdown";
 
 export default defineConfig({
@@ -7,4 +8,7 @@ export default defineConfig({
   hash: false,
   clean: true,
   sourcemap: true,
+  alias: {
+    src: path.resolve(import.meta.dirname, "src"),
+  },
 });

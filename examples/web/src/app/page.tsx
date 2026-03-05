@@ -1,13 +1,30 @@
 "use client";
 
-// TODO: Import from @agent-ui-sdk/react once components are implemented
-// import { Chat, ChatProvider } from "@agent-ui-sdk/react";
-// import { useChat } from "@ai-sdk/react";
-
+import { Chat, useBranchedChat } from "@agent-ui-sdk/react";
+import { useChat } from "@ai-sdk/react";
 export default function Home() {
+  const chatHelpers = useChat();
+  const branchedChat = useBranchedChat({ chatHelpers });
+
   return (
-    <div className="flex h-screen items-center justify-center bg-background">
-      <p className="text-foreground">Agent UI SDK — Web Example (awaiting implementation)</p>
+    <div className="flex h-screen bg-background">
+      <Chat
+        chatHelpers={branchedChat}
+        config={{
+          getBranches: branchedChat.getBranches,
+          onSwitchBranch: branchedChat.switchBranch,
+          onRestoreCheckpoint: branchedChat.restoreCheckpoint,
+          onRegenerate: (messageId: string) => {
+            branchedChat.regenerate?.({ messageId });
+          },
+          suggestions: [
+            "What is the meaning of life?",
+            "Explain quantum computing",
+            "Write a haiku about coding",
+          ],
+        }}
+        className="mx-auto w-full max-w-3xl"
+      />
     </div>
   );
 }

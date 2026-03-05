@@ -18,7 +18,11 @@
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
     "stripInternal": true,
-    "noUncheckedIndexedAccess": true
+    "noUncheckedIndexedAccess": true,
+    "baseUrl": ".",
+    "paths": {
+      "src/*": ["src/*"]
+    }
   },
   "include": ["src"]
 }
