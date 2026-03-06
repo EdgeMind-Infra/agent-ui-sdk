@@ -18,7 +18,8 @@
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
     "stripInternal": true,
-    "noUncheckedIndexedAccess": true
+    "noUncheckedIndexedAccess": true,
+    "types": ["react-native-css/types"]
   },
   "include": ["src"]
 }
