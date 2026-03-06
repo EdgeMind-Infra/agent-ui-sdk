@@ -12,8 +12,10 @@ import {
 import type { ComponentProps, ReactNode } from "react";
 import { isValidElement } from "react";
 import { Badge } from "src/components/ui/badge";
+import { Button } from "src/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "src/components/ui/collapsible";
 import { cn } from "src/lib/utils";
+import type { ToolApprovalData } from "src/types";
 
 import { CodeBlock } from "./code-block";
 
@@ -151,6 +153,55 @@ export const ToolOutput = ({ className, output, errorText, ...props }: ToolOutpu
         {errorText && <div>{errorText}</div>}
         {Output}
       </div>
+    </div>
+  );
+};
+
+export type ToolApprovalProps = {
+  approval: ToolApprovalData;
+  state: ToolPart["state"];
+  onRespond: (opts: { id: string; approved: boolean }) => void;
+  className?: string;
+};
+
+export const ToolApproval = ({ approval, state, onRespond, className }: ToolApprovalProps) => {
+  if (state === "approval-responded") {
+    return (
+      <div className={cn("flex items-center gap-2 px-3 pb-3", className)}>
+        <Badge className="gap-1.5 rounded-full text-xs" variant="secondary">
+          {approval.approved ? (
+            <CheckCircleIcon className="size-3.5 text-green-600" />
+          ) : (
+            <XCircleIcon className="size-3.5 text-orange-600" />
+          )}
+          {approval.approved ? "Approved" : "Denied"}
+        </Badge>
+      </div>
+    );
+  }
+
+  if (state !== "approval-requested") return null;
+
+  return (
+    <div className={cn("flex items-center gap-2 px-3 pb-3", className)}>
+      <Button
+        size="sm"
+        variant="default"
+        className="h-7 gap-1.5 text-xs"
+        onClick={() => onRespond({ id: approval.id, approved: true })}
+      >
+        <CheckCircleIcon className="size-3.5" />
+        Approve
+      </Button>
+      <Button
+        size="sm"
+        variant="outline"
+        className="h-7 gap-1.5 text-xs"
+        onClick={() => onRespond({ id: approval.id, approved: false })}
+      >
+        <XCircleIcon className="size-3.5" />
+        Deny
+      </Button>
     </div>
   );
 };

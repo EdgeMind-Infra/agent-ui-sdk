@@ -17,13 +17,25 @@ import { ChatMessage } from "./chat-message";
 import { useChatContext } from "./chat-provider";
 
 const CheckpointItem = memo(
-  ({ messageId, onRestore }: { messageId: string; onRestore: (messageId: string) => void }) => {
-    const handleClick = useCallback(() => onRestore(messageId), [onRestore, messageId]);
+  ({
+    messageId,
+    onRestore,
+  }: {
+    messageId: string;
+    onRestore: (messageId: string) => void;
+  }) => {
+    const handleClick = useCallback(
+      () => onRestore(messageId),
+      [onRestore, messageId],
+    );
 
     return (
       <Checkpoint className="w-full overflow-visible opacity-0 transition-opacity group-hover/restore:opacity-100">
         <CheckpointIcon />
-        <CheckpointTrigger onClick={handleClick} tooltip="Restores chat to this point">
+        <CheckpointTrigger
+          onClick={handleClick}
+          tooltip="Restores chat to this point"
+        >
           Restore checkpoint
         </CheckpointTrigger>
       </Checkpoint>
@@ -43,7 +55,7 @@ export function ChatMessages({ className }: ChatMessagesProps) {
 
   return (
     <Conversation className={className}>
-      <ConversationContent>
+      <ConversationContent className="max-w-3xl mx-auto">
         {messages.map((message, index) => {
           const branches = getBranches?.(message.id);
           const isLast = index === messages.length - 1;
@@ -58,8 +70,14 @@ export function ChatMessages({ className }: ChatMessagesProps) {
 
           if (showCheckpoint) {
             return (
-              <div key={message.id} className="group/restore relative overflow-hidden">
-                <CheckpointItem messageId={prevMessage.id} onRestore={onRestoreCheckpoint} />
+              <div
+                key={message.id}
+                className="group/restore relative overflow-hidden"
+              >
+                <CheckpointItem
+                  messageId={prevMessage.id}
+                  onRestore={onRestoreCheckpoint}
+                />
                 <MessageComponent
                   message={message}
                   isLastMessage={isLast}

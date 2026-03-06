@@ -157,6 +157,7 @@ export function ChatInput({ className }: ChatInputProps) {
     enableWebSearch,
     webSearchActive,
     onWebSearchToggle,
+    toolbarExtras,
   } = config;
 
   const selectedModelData = useMemo(
@@ -228,6 +229,7 @@ export function ChatInput({ className }: ChatInputProps) {
     enableSpeechInput ||
     enableThinking ||
     enableWebSearch ||
+    toolbarExtras ||
     (models && models.length > 0);
 
   return (
@@ -299,6 +301,7 @@ export function ChatInput({ className }: ChatInputProps) {
                     <span>Search</span>
                   </PromptInputButton>
                 )}
+                {toolbarExtras}
                 {models && models.length > 0 && (
                   <ModelSelector onOpenChange={setModelSelectorOpen} open={modelSelectorOpen}>
                     <ModelSelectorTrigger asChild>

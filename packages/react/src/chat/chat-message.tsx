@@ -8,10 +8,10 @@ import {
   ClipboardIcon,
   RefreshCwIcon,
 } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import { Message, MessageAction, MessageContent } from "src/components/ai-elements/message";
 import { Button } from "src/components/ui/button";
-import type { ChatMessageProps } from "../types";
+import type { ChatMessageProps, ToolCallState, ToolUIRendererComponent } from "../types";
 import { useChatContext } from "./chat-provider";
 import { ReasoningPart as DefaultReasoningPart } from "./parts/reasoning-part";
 import { SourcePart as DefaultSourcePart } from "./parts/source-part";
@@ -96,6 +96,19 @@ function BranchSelector({
   );
 }
 
+/**
+ * Extract toolName from a tool part.
+ * - Static tool: type is "tool-web_search" → toolName is "web_search"
+ * - Dynamic tool: type is "dynamic-tool", toolName is on the part object
+ */
+function extractToolName(part: { type: string; toolName?: string }): string {
+  if (part.type === "dynamic-tool") {
+    return part.toolName ?? "unknown";
+  }
+  // Static tool: "tool-{name}"
+  return part.type.replace(/^tool-/, "");
+}
+
 export function ChatMessage({
   message,
   isLastMessage,
@@ -103,11 +116,17 @@ export function ChatMessage({
   branches,
   onSwitchBranch,
 }: ChatMessageProps) {
-  const { components } = useChatContext();
+  const { chatHelpers, components, toolUIRegistry, toolRenderers } = useChatContext();
+
+  // Subscribe to registry changes so we re-render when tools are registered/unregistered
+  const registrySnapshot = useSyncExternalStore(
+    useCallback((cb: () => void) => toolUIRegistry.subscribe(cb), [toolUIRegistry]),
+    useCallback(() => toolUIRegistry.getSnapshot(), [toolUIRegistry]),
+  );
 
   const TextPartComponent = components.TextPart ?? DefaultTextPart;
   const ReasoningPartComponent = components.ReasoningPart ?? DefaultReasoningPart;
-  const ToolPartComponent = components.ToolPart ?? DefaultToolPart;
+  const FallbackToolPartComponent = components.ToolPart ?? DefaultToolPart;
   const SourcePartComponent = components.SourcePart ?? DefaultSourcePart;
 
   // Collect source-url parts
@@ -171,17 +190,45 @@ export function ChatMessage({
               type: string;
               toolName?: string;
               toolCallId: string;
-              state: string;
+              state: ToolCallState;
               input?: unknown;
               output?: unknown;
               errorText?: string;
+              title?: string;
+              approval?: { id: string; approved?: boolean; reason?: string };
             };
+            const toolName = extractToolName(toolPart);
+
+            // Four-level fallback: toolRenderers prop → registry → components.ToolPart → DefaultToolPart
+            const PerToolRenderer = (toolRenderers?.[toolName] ??
+              registrySnapshot[toolName]) as ToolUIRendererComponent | undefined;
+
+            if (PerToolRenderer) {
+              return (
+                <PerToolRenderer
+                  key={`${message.id}-${i}`}
+                  toolName={toolName}
+                  toolCallId={toolPart.toolCallId}
+                  state={toolPart.state}
+                  input={toolPart.input}
+                  output={toolPart.output}
+                  errorText={toolPart.errorText}
+                  title={toolPart.title}
+                  messageId={message.id}
+                  partIndex={i}
+                  approval={toolPart.approval}
+                  addToolApprovalResponse={chatHelpers.addToolApprovalResponse}
+                />
+              );
+            }
+
             return (
-              <ToolPartComponent
+              <FallbackToolPartComponent
                 key={`${message.id}-${i}`}
                 part={toolPart}
                 messageId={message.id}
                 partIndex={i}
+                addToolApprovalResponse={chatHelpers.addToolApprovalResponse}
               />
             );
           }

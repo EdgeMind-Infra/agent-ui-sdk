@@ -1,5 +1,5 @@
-import type { ChatStatus, FileUIPart, UIMessage } from "ai";
-import type { ComponentType, HTMLAttributes } from "react";
+import type { ChatStatus, FileUIPart, UIMessage, UITool, UIToolInvocation } from "ai";
+import type { ComponentType, HTMLAttributes, ReactNode } from "react";
 
 /**
  * Subset of useChat() return value that Chat component needs.
@@ -14,6 +14,8 @@ export interface ChatHelpers {
   setMessages?: (messages: UIMessage[] | ((prev: UIMessage[]) => UIMessage[])) => void;
   /** Regenerate assistant response (from useChat). Needed for regeneration. */
   regenerate?: (options?: { messageId?: string }) => Promise<void>;
+  /** Respond to a tool approval request (from useChat). */
+  addToolApprovalResponse?: (opts: { id: string; approved: boolean; reason?: string }) => void;
 }
 
 /**
@@ -64,6 +66,9 @@ export interface ChatConfig {
   webSearchActive?: boolean;
   /** Called when web search is toggled. */
   onWebSearchToggle?: (active: boolean) => void;
+
+  /** Extra ReactNode rendered inside the toolbar (after built-in buttons, before model selector). */
+  toolbarExtras?: ReactNode;
 
   /** Get all branch versions for a message (including itself). Provided by useBranchedChat. */
   getBranches?: (messageId: string) => UIMessage[];
@@ -124,13 +129,16 @@ export interface ToolPartProps {
     type: string;
     toolName?: string;
     toolCallId: string;
-    state: string;
+    state: ToolCallState;
     input?: unknown;
     output?: unknown;
     errorText?: string;
+    title?: string;
+    approval?: ToolApprovalData;
   };
   messageId: string;
   partIndex: number;
+  addToolApprovalResponse?: (opts: { id: string; approved: boolean; reason?: string }) => void;
 }
 
 export interface SourcePartProps {
@@ -140,6 +148,42 @@ export interface SourcePartProps {
     title?: string;
   }>;
 }
+
+/**
+ * Tool call state values, derived from AI SDK's UIToolInvocation.
+ */
+export type ToolCallState = UIToolInvocation<UITool>["state"];
+
+/**
+ * Props passed to a per-tool custom renderer registered via useToolUI / makeToolUI / toolRenderers.
+ * Aligned with AI SDK's ToolUIPart / DynamicToolUIPart fields.
+ */
+export interface ToolApprovalData {
+  id: string;
+  approved?: boolean;
+  reason?: string;
+}
+
+export interface ToolUIProps<TArgs = unknown, TResult = unknown> {
+  toolName: string;
+  toolCallId: string;
+  state: ToolCallState;
+  input?: TArgs;
+  output?: TResult;
+  errorText?: string;
+  title?: string;
+  messageId: string;
+  partIndex: number;
+  approval?: ToolApprovalData;
+  addToolApprovalResponse?: (opts: { id: string; approved: boolean; reason?: string }) => void;
+}
+
+/**
+ * A React component that renders a custom tool UI.
+ */
+export type ToolUIRendererComponent<TArgs = unknown, TResult = unknown> = ComponentType<
+  ToolUIProps<TArgs, TResult>
+>;
 
 /**
  * Map of replaceable sub-components.
@@ -161,4 +205,6 @@ export interface ChatProps extends HTMLAttributes<HTMLDivElement> {
   chatHelpers: ChatHelpers;
   components?: ChatComponents;
   config?: ChatConfig;
+  /** Per-tool custom renderers. Keys are toolName strings. Takes priority over useToolUI registry. */
+  toolRenderers?: Record<string, ToolUIRendererComponent>;
 }

@@ -153,6 +153,7 @@ export function useBranchedChat({
     error: chatHelpers.error,
     setMessages: chatHelpers.setMessages,
     regenerate: chatHelpers.regenerate,
+    addToolApprovalResponse: chatHelpers.addToolApprovalResponse,
 
     // Branching additions
     getBranches,

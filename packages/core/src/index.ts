@@ -7,6 +7,7 @@
 export { InMemoryHistoryAdapter } from "./adapters/in-memory-history-adapter";
 export { InMemoryThreadListAdapter } from "./adapters/in-memory-thread-list-adapter";
 export { MessageRepository } from "./message-repository";
+export { ToolUIRegistry } from "./tool-ui-registry";
 export type {
   ExportedMessage,
   MessageNode,
