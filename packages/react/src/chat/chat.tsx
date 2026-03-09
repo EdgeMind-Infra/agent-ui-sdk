@@ -26,7 +26,7 @@ export function Chat({
       toolRenderers={toolRenderers}
     >
       <div
-        className={cn("relative flex size-full flex-col divide-y overflow-hidden", className)}
+        className={cn("relative flex size-full flex-col overflow-hidden", className)}
         {...props}
       >
         <MessagesComponent />

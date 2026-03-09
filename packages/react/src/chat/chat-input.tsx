@@ -233,9 +233,9 @@ export function ChatInput({ className }: ChatInputProps) {
     (models && models.length > 0);
 
   return (
-    <div className={cn("grid shrink-0 gap-4 pt-4", className)}>
+    <div className={cn("shrink-0 pb-3", className)}>
       {suggestions && suggestions.length > 0 && (
-        <Suggestions className="px-4">
+        <Suggestions className="mx-auto w-full max-w-3xl px-5">
           {suggestions.map((suggestion) => (
             <SuggestionItem
               key={suggestion}
@@ -245,7 +245,7 @@ export function ChatInput({ className }: ChatInputProps) {
           ))}
         </Suggestions>
       )}
-      <div className="w-full px-4 pb-4">
+      <div className="mx-auto w-full max-w-3xl px-5">
         <PromptInput
           globalDrop={enableAttachments}
           multiple={enableAttachments}
@@ -287,18 +287,18 @@ export function ChatInput({ className }: ChatInputProps) {
                   <PromptInputButton
                     onClick={handleThinkingToggle}
                     variant={thinkingActive ? "default" : "ghost"}
+                    tooltip="Think"
                   >
                     <BrainIcon size={16} />
-                    <span>Think</span>
                   </PromptInputButton>
                 )}
                 {enableWebSearch && (
                   <PromptInputButton
                     onClick={handleWebSearchToggle}
                     variant={webSearchActive ? "default" : "ghost"}
+                    tooltip="Search"
                   >
                     <GlobeIcon size={16} />
-                    <span>Search</span>
                   </PromptInputButton>
                 )}
                 {toolbarExtras}
