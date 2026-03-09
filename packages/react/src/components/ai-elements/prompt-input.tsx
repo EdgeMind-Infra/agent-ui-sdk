@@ -56,7 +56,7 @@ import {
   SelectValue,
 } from "src/components/ui/select";
 import { Spinner } from "src/components/ui/spinner";
-import { Tooltip, TooltipContent, TooltipTrigger } from "src/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "src/components/ui/tooltip";
 import { cn } from "src/lib/utils";
 
 // ============================================================================
@@ -949,13 +949,15 @@ export const PromptInputButton = ({
   const side = typeof tooltip === "string" ? "top" : (tooltip.side ?? "top");
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>{button}</TooltipTrigger>
-      <TooltipContent side={side}>
-        {tooltipContent}
-        {shortcut && <span className="ml-2 text-muted-foreground">{shortcut}</span>}
-      </TooltipContent>
-    </Tooltip>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>{button}</TooltipTrigger>
+        <TooltipContent side={side}>
+          {tooltipContent}
+          {shortcut && <span className="ml-2 text-muted-foreground">{shortcut}</span>}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 };
 
