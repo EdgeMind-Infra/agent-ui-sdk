@@ -1,5 +1,6 @@
 "use client";
 
+import { createFallbackDictationAdapter } from "@agent-ui-sdk/core";
 import { BrainIcon, CheckIcon, GlobeIcon } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import {
@@ -8,6 +9,7 @@ import {
   AttachmentRemove,
   Attachments,
 } from "src/components/ai-elements/attachments";
+import { DictationButton } from "src/components/ai-elements/dictation-button";
 import {
   ModelSelector,
   ModelSelectorContent,
@@ -37,7 +39,6 @@ import {
   PromptInputTools,
   usePromptInputAttachments,
 } from "src/components/ai-elements/prompt-input";
-import { SpeechInput } from "src/components/ai-elements/speech-input";
 import { Suggestion, Suggestions } from "src/components/ai-elements/suggestion";
 import { cn } from "src/lib/utils";
 import type { ChatInputProps, ModelConfig } from "../types";
@@ -149,6 +150,7 @@ export function ChatInput({ className }: ChatInputProps) {
     selectedModel,
     onModelChange,
     enableAttachments,
+    dictationAdapter: dictationAdapterProp,
     enableSpeechInput,
     onAudioRecorded,
     enableThinking,
@@ -160,6 +162,16 @@ export function ChatInput({ className }: ChatInputProps) {
     toolbarExtras,
     toolbarRight,
   } = config;
+
+  // Resolve dictation adapter: explicit prop > backward-compat fallback
+  const dictationAdapter = useMemo(() => {
+    if (dictationAdapterProp) return dictationAdapterProp;
+    if (enableSpeechInput === false) return undefined;
+    if (onAudioRecorded) {
+      return createFallbackDictationAdapter({ transcribe: onAudioRecorded });
+    }
+    return undefined;
+  }, [dictationAdapterProp, enableSpeechInput, onAudioRecorded]);
 
   const selectedModelData = useMemo(
     () => models?.find((m) => m.id === selectedModel),
@@ -205,7 +217,7 @@ export function ChatInput({ className }: ChatInputProps) {
     [onSuggestionClick, sendMessage],
   );
 
-  const handleTranscriptionChange = useCallback((transcript: string) => {
+  const handleTranscriptionComplete = useCallback((transcript: string) => {
     setText((prev) => (prev ? `${prev} ${transcript}` : transcript));
   }, []);
 
@@ -227,7 +239,6 @@ export function ChatInput({ className }: ChatInputProps) {
 
   const hasTools =
     enableAttachments ||
-    enableSpeechInput ||
     enableThinking ||
     enableWebSearch ||
     toolbarExtras ||
@@ -274,15 +285,6 @@ export function ChatInput({ className }: ChatInputProps) {
                       <PromptInputActionAddAttachments />
                     </PromptInputActionMenuContent>
                   </PromptInputActionMenu>
-                )}
-                {enableSpeechInput && (
-                  <SpeechInput
-                    className="shrink-0"
-                    onTranscriptionChange={handleTranscriptionChange}
-                    onAudioRecorded={onAudioRecorded}
-                    size="icon-sm"
-                    variant="ghost"
-                  />
                 )}
                 {enableThinking && (
                   <PromptInputButton
@@ -341,10 +343,21 @@ export function ChatInput({ className }: ChatInputProps) {
             )}
             <div className="flex items-center gap-1">
               {toolbarRight}
+              {dictationAdapter && (
+                <DictationButton
+                  adapter={dictationAdapter}
+                  className="shrink-0"
+                  onResult={handleTranscriptionComplete}
+                  size="icon-sm"
+                  tooltip="Voice input"
+                  variant="ghost"
+                />
+              )}
               <PromptInputSubmit
                 disabled={!text.trim() && status !== "streaming" && status !== "submitted"}
                 status={status}
                 onStop={stop}
+                tooltip="Send"
               />
             </div>
           </PromptInputFooter>

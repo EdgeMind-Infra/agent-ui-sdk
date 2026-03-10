@@ -1,5 +1,5 @@
 /** @vitest-environment jsdom */
-import { ToolUIRegistry } from "@agent-ui-sdk/core";
+import type { ToolUIRegistry } from "@agent-ui-sdk/core";
 import React, { createElement, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";

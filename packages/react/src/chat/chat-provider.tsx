@@ -44,7 +44,13 @@ export function ChatProvider({
 
   return (
     <ChatContext
-      value={{ chatHelpers, components, config, toolUIRegistry: registryRef.current, toolRenderers }}
+      value={{
+        chatHelpers,
+        components,
+        config,
+        toolUIRegistry: registryRef.current,
+        toolRenderers,
+      }}
     >
       {children}
     </ChatContext>

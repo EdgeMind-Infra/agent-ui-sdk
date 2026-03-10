@@ -25,17 +25,11 @@ export function ToolPart({ part, addToolApprovalResponse }: ToolPartProps) {
   return (
     <Tool
       defaultOpen={
-        isCompleted ||
-        part.state === "output-error" ||
-        part.state === "approval-requested"
+        isCompleted || part.state === "output-error" || part.state === "approval-requested"
       }
     >
       {part.type === "dynamic-tool" ? (
-        <ToolHeader
-          type="dynamic-tool"
-          state={state}
-          toolName={part.toolName ?? "unknown"}
-        />
+        <ToolHeader type="dynamic-tool" state={state} toolName={part.toolName ?? "unknown"} />
       ) : (
         <ToolHeader type={part.type as `tool-${string}`} state={state} />
       )}

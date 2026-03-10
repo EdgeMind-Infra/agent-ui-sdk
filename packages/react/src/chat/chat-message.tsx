@@ -200,8 +200,9 @@ export function ChatMessage({
             const toolName = extractToolName(toolPart);
 
             // Four-level fallback: toolRenderers prop → registry → components.ToolPart → DefaultToolPart
-            const PerToolRenderer = (toolRenderers?.[toolName] ??
-              registrySnapshot[toolName]) as ToolUIRendererComponent | undefined;
+            const PerToolRenderer = (toolRenderers?.[toolName] ?? registrySnapshot[toolName]) as
+              | ToolUIRendererComponent
+              | undefined;
 
             if (PerToolRenderer) {
               return (

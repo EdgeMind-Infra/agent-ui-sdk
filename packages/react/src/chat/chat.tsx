@@ -25,10 +25,7 @@ export function Chat({
       config={config}
       toolRenderers={toolRenderers}
     >
-      <div
-        className={cn("relative flex size-full flex-col overflow-hidden", className)}
-        {...props}
-      >
+      <div className={cn("relative flex size-full flex-col overflow-hidden", className)} {...props}>
         <MessagesComponent />
         <InputComponent />
       </div>

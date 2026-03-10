@@ -1,3 +1,4 @@
+import type { DictationAdapter } from "@agent-ui-sdk/core";
 import type { ChatStatus, FileUIPart, UIMessage, UITool, UIToolInvocation } from "ai";
 import type { ComponentType, HTMLAttributes, ReactNode } from "react";
 
@@ -48,9 +49,18 @@ export interface ChatConfig {
   /** Enable file attachments in the input. */
   enableAttachments?: boolean;
 
-  /** Enable speech input (microphone button). */
+  /** Dictation adapter for speech-to-text. When provided, a microphone button appears next to submit. */
+  dictationAdapter?: DictationAdapter;
+
+  /**
+   * @deprecated Use `dictationAdapter` instead. Kept for backward compatibility.
+   * When provided without `dictationAdapter`, auto-creates a fallback adapter.
+   */
   enableSpeechInput?: boolean;
-  /** Called when audio is recorded (for browsers without Web Speech API). */
+  /**
+   * @deprecated Use `dictationAdapter` with `MediaRecorderDictationAdapter` instead.
+   * Called when audio is recorded (for browsers without Web Speech API).
+   */
   onAudioRecorded?: (audioBlob: Blob) => Promise<string>;
 
   /** Enable thinking/reasoning mode toggle button. */

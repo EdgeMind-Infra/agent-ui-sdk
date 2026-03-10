@@ -1,7 +1,7 @@
 "use client";
 
 import type { ChatStatus, FileUIPart, SourceDocumentUIPart } from "ai";
-import { CornerDownLeftIcon, ImageIcon, PlusIcon, SquareIcon, XIcon } from "lucide-react";
+import { ArrowUpIcon, ImageIcon, PlusIcon, SquareIcon, XIcon } from "lucide-react";
 import { nanoid } from "nanoid";
 import type {
   ChangeEvent,
@@ -1000,6 +1000,7 @@ export const PromptInputActionMenuItem = ({
 export type PromptInputSubmitProps = ComponentProps<typeof InputGroupButton> & {
   status?: ChatStatus;
   onStop?: () => void;
+  tooltip?: string;
 };
 
 export const PromptInputSubmit = ({
@@ -1010,11 +1011,12 @@ export const PromptInputSubmit = ({
   onStop,
   onClick,
   children,
+  tooltip,
   ...props
 }: PromptInputSubmitProps) => {
   const isGenerating = status === "submitted" || status === "streaming";
 
-  let Icon = <CornerDownLeftIcon className="size-4" />;
+  let Icon = <ArrowUpIcon className="size-4" />;
 
   if (status === "submitted") {
     Icon = <Spinner />;
@@ -1036,10 +1038,10 @@ export const PromptInputSubmit = ({
     [isGenerating, onStop, onClick],
   );
 
-  return (
+  const button = (
     <InputGroupButton
       aria-label={isGenerating ? "Stop" : "Submit"}
-      className={cn("rounded-lg", className)}
+      className={cn("rounded-full", className)}
       onClick={handleClick}
       size={size}
       type={isGenerating && onStop ? "button" : "submit"}
@@ -1049,6 +1051,19 @@ export const PromptInputSubmit = ({
       {children ?? Icon}
     </InputGroupButton>
   );
+
+  if (tooltip) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>{button}</TooltipTrigger>
+        <TooltipContent side="top" className="text-xs">
+          {tooltip}
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  return button;
 };
 
 export type PromptInputSelectProps = ComponentProps<typeof Select>;

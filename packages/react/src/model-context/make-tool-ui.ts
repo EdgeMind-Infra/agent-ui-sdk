@@ -1,7 +1,7 @@
 "use client";
 
 import type { FC } from "react";
-import { useToolUI, type UseToolUIOptions } from "../hooks/use-tool-ui";
+import { type UseToolUIOptions, useToolUI } from "../hooks/use-tool-ui";
 
 export type ToolUIComponent = FC & {
   /** @internal Tool registration metadata. */
