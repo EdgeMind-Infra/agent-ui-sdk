@@ -70,6 +70,9 @@ export interface ChatConfig {
   /** Extra ReactNode rendered inside the toolbar (after built-in buttons, before model selector). */
   toolbarExtras?: ReactNode;
 
+  /** Extra ReactNode rendered to the left of the submit button. */
+  toolbarRight?: ReactNode;
+
   /** Get all branch versions for a message (including itself). Provided by useBranchedChat. */
   getBranches?: (messageId: string) => UIMessage[];
   /** Switch to a specific branch by message ID. Provided by useBranchedChat. */

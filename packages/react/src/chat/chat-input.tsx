@@ -158,6 +158,7 @@ export function ChatInput({ className }: ChatInputProps) {
     webSearchActive,
     onWebSearchToggle,
     toolbarExtras,
+    toolbarRight,
   } = config;
 
   const selectedModelData = useMemo(
@@ -338,11 +339,14 @@ export function ChatInput({ className }: ChatInputProps) {
             ) : (
               <div />
             )}
-            <PromptInputSubmit
-              disabled={!text.trim() && status !== "streaming" && status !== "submitted"}
-              status={status}
-              onStop={stop}
-            />
+            <div className="flex items-center gap-1">
+              {toolbarRight}
+              <PromptInputSubmit
+                disabled={!text.trim() && status !== "streaming" && status !== "submitted"}
+                status={status}
+                onStop={stop}
+              />
+            </div>
           </PromptInputFooter>
         </PromptInput>
       </div>
