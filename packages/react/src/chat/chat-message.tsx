@@ -11,7 +11,7 @@ import {
 import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import { Message, MessageAction, MessageContent } from "src/components/ai-elements/message";
 import { Button } from "src/components/ui/button";
-import type { ChatMessageProps, ToolCallState, ToolUIRendererComponent } from "../types";
+import { DEFAULT_CHAT_LABELS, type ChatMessageProps, type ToolCallState, type ToolUIRendererComponent } from "../types";
 import { useChatContext } from "./chat-provider";
 import { ReasoningPart as DefaultReasoningPart } from "./parts/reasoning-part";
 import { SourcePart as DefaultSourcePart } from "./parts/source-part";
@@ -20,6 +20,7 @@ import { ToolPart as DefaultToolPart } from "./parts/tool-part";
 
 function CopyAction({ text, messageId }: { text: string; messageId: string }) {
   const { config } = useChatContext();
+  const labels = { ...DEFAULT_CHAT_LABELS, ...config.labels };
   const [copied, setCopied] = useState(false);
 
   const handleCopy = useCallback(() => {
@@ -33,7 +34,7 @@ function CopyAction({ text, messageId }: { text: string; messageId: string }) {
   }, [config, messageId, text]);
 
   return (
-    <MessageAction tooltip={copied ? "Copied" : "Copy"} onClick={handleCopy}>
+    <MessageAction tooltip={copied ? labels.copied : labels.copy} onClick={handleCopy}>
       {copied ? <CheckIcon size={14} /> : <ClipboardIcon size={14} />}
     </MessageAction>
   );
@@ -41,6 +42,7 @@ function CopyAction({ text, messageId }: { text: string; messageId: string }) {
 
 function RegenerateAction({ messageId }: { messageId: string }) {
   const { config } = useChatContext();
+  const labels = { ...DEFAULT_CHAT_LABELS, ...config.labels };
 
   const handleRegenerate = useCallback(() => {
     config.onRegenerate?.(messageId);
@@ -49,7 +51,7 @@ function RegenerateAction({ messageId }: { messageId: string }) {
   if (!config.onRegenerate) return null;
 
   return (
-    <MessageAction tooltip="Retry" onClick={handleRegenerate}>
+    <MessageAction tooltip={labels.retry} onClick={handleRegenerate}>
       <RefreshCwIcon size={14} />
     </MessageAction>
   );

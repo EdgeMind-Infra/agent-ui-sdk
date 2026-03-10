@@ -3,6 +3,44 @@ import type { ChatStatus, FileUIPart, UIMessage, UITool, UIToolInvocation } from
 import type { ComponentType, HTMLAttributes, ReactNode } from "react";
 
 /**
+ * All user-visible strings in the Chat UI. Override any subset via `config.labels`.
+ */
+export interface ChatLabels {
+  // Message actions
+  copy: string;
+  copied: string;
+  retry: string;
+  // Input
+  placeholder: string;
+  send: string;
+  think: string;
+  search: string;
+  voiceInput: string;
+  searchModels: string;
+  noModelsFound: string;
+  // Reasoning
+  thinking: string;
+  thoughtForFewSeconds: string;
+  thoughtForSeconds: (n: number) => string;
+}
+
+export const DEFAULT_CHAT_LABELS: ChatLabels = {
+  copy: "Copy",
+  copied: "Copied",
+  retry: "Retry",
+  placeholder: "Type a message...",
+  send: "Send",
+  think: "Think",
+  search: "Search",
+  voiceInput: "Voice input",
+  searchModels: "Search models...",
+  noModelsFound: "No models found.",
+  thinking: "Thinking...",
+  thoughtForFewSeconds: "Thought for a few seconds",
+  thoughtForSeconds: (n) => `Thought for ${n} seconds`,
+};
+
+/**
  * Subset of useChat() return value that Chat component needs.
  */
 export interface ChatHelpers {
@@ -94,6 +132,9 @@ export interface ChatConfig {
   onRegenerate?: (messageId: string) => void;
   /** Copy message text to clipboard. Uses navigator.clipboard by default. */
   onCopy?: (messageId: string, text: string) => void;
+
+  /** Override any subset of UI strings. Falls back to English defaults. */
+  labels?: Partial<ChatLabels>;
 }
 
 /**

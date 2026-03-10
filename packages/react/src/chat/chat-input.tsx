@@ -41,7 +41,7 @@ import {
 } from "src/components/ai-elements/prompt-input";
 import { Suggestion, Suggestions } from "src/components/ai-elements/suggestion";
 import { cn } from "src/lib/utils";
-import type { ChatInputProps, ModelConfig } from "../types";
+import { DEFAULT_CHAT_LABELS, type ChatInputProps, type ModelConfig } from "../types";
 import { useChatContext } from "./chat-provider";
 
 // ============================================================================
@@ -140,6 +140,7 @@ function ModelItem({
 export function ChatInput({ className }: ChatInputProps) {
   const { chatHelpers, config } = useChatContext();
   const { sendMessage, stop, status } = chatHelpers;
+  const labels = { ...DEFAULT_CHAT_LABELS, ...config.labels };
   const [text, setText] = useState("");
   const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
 
@@ -272,7 +273,7 @@ export function ChatInput({ className }: ChatInputProps) {
             <PromptInputTextarea
               value={text}
               onChange={handleTextChange}
-              placeholder="Type a message..."
+              placeholder={labels.placeholder}
             />
           </PromptInputBody>
           <PromptInputFooter>
@@ -290,7 +291,7 @@ export function ChatInput({ className }: ChatInputProps) {
                   <PromptInputButton
                     onClick={handleThinkingToggle}
                     variant={thinkingActive ? "default" : "ghost"}
-                    tooltip="Think"
+                    tooltip={labels.think}
                   >
                     <BrainIcon size={16} />
                   </PromptInputButton>
@@ -299,7 +300,7 @@ export function ChatInput({ className }: ChatInputProps) {
                   <PromptInputButton
                     onClick={handleWebSearchToggle}
                     variant={webSearchActive ? "default" : "ghost"}
-                    tooltip="Search"
+                    tooltip={labels.search}
                   >
                     <GlobeIcon size={16} />
                   </PromptInputButton>
@@ -318,9 +319,9 @@ export function ChatInput({ className }: ChatInputProps) {
                       </PromptInputButton>
                     </ModelSelectorTrigger>
                     <ModelSelectorContent>
-                      <ModelSelectorInput placeholder="Search models..." />
+                      <ModelSelectorInput placeholder={labels.searchModels} />
                       <ModelSelectorList>
-                        <ModelSelectorEmpty>No models found.</ModelSelectorEmpty>
+                        <ModelSelectorEmpty>{labels.noModelsFound}</ModelSelectorEmpty>
                         {modelGroups.map(([group, groupModels]) => (
                           <ModelSelectorGroup heading={group} key={group}>
                             {groupModels.map((m) => (
@@ -349,7 +350,7 @@ export function ChatInput({ className }: ChatInputProps) {
                   className="shrink-0"
                   onResult={handleTranscriptionComplete}
                   size="icon-sm"
-                  tooltip="Voice input"
+                  tooltip={labels.voiceInput}
                   variant="ghost"
                 />
               )}
@@ -357,7 +358,7 @@ export function ChatInput({ className }: ChatInputProps) {
                 disabled={!text.trim() && status !== "streaming" && status !== "submitted"}
                 status={status}
                 onStop={stop}
-                tooltip="Send"
+                tooltip={labels.send}
               />
             </div>
           </PromptInputFooter>

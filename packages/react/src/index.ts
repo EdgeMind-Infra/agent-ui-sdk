@@ -57,6 +57,7 @@ export type {
   ChatConfig,
   ChatHelpers,
   ChatInputProps,
+  ChatLabels,
   ChatMessageProps,
   ChatMessagesProps,
   ChatProps,
@@ -70,3 +71,4 @@ export type {
   ToolUIProps,
   ToolUIRendererComponent,
 } from "./types";
+export { DEFAULT_CHAT_LABELS } from "./types";
