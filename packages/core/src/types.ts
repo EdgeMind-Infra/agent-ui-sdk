@@ -27,7 +27,7 @@ export interface ThreadMetadata {
   title?: string;
   createdAt: Date;
   updatedAt: Date;
-  archived?: boolean;
+  favorited?: boolean;
 }
 
 /**
@@ -40,12 +40,19 @@ export interface ThreadHistoryAdapter {
 }
 
 /**
+ * Filter type for thread list queries.
+ * "all" returns everything; other values filter by the corresponding property.
+ */
+export type ThreadFilterType = "all" | "favorited";
+
+/**
  * Adapter for managing the list of threads.
  */
 export interface ThreadListAdapter {
-  list(): Promise<ThreadMetadata[]>;
+  list(filter?: ThreadFilterType): Promise<ThreadMetadata[]>;
   create(metadata?: Partial<ThreadMetadata>): Promise<ThreadMetadata>;
   rename(threadId: string, title: string): Promise<void>;
   delete(threadId: string): Promise<void>;
-  archive(threadId: string): Promise<void>;
+  favorite(threadId: string): Promise<void>;
+  unfavorite(threadId: string): Promise<void>;
 }

@@ -94,8 +94,9 @@ export function useBranchedChat({
     prevMessagesRef.current = curr;
     forceRender((n) => n + 1);
 
-    // Persist if adapter is available
-    if (historyAdapter && threadId) {
+    // Persist if adapter is available — skip when messages are empty
+    // to prevent overwriting stored history on initial mount
+    if (historyAdapter && threadId && curr.length > 0) {
       historyAdapter.save(threadId, repository.export());
     }
   }, [chatHelpers.messages, repository, historyAdapter, threadId]);

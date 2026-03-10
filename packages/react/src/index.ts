@@ -37,6 +37,21 @@ export type { ToolUIComponent } from "./model-context/make-tool-ui";
 // Tool UI factory
 export { makeToolUI } from "./model-context/make-tool-ui";
 // Types
+// Thread list
+export type {
+  ThreadListActions,
+  ThreadListChatProviderProps,
+  ThreadListContextValue,
+  ThreadListProviderProps,
+  ThreadListSidebarProps,
+  ThreadListState,
+} from "./thread-list";
+export {
+  ThreadListChatProvider,
+  ThreadListProvider,
+  ThreadListSidebar,
+  useThreadList,
+} from "./thread-list";
 export type {
   ChatComponents,
   ChatConfig,

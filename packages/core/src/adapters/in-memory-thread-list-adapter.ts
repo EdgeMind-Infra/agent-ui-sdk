@@ -1,4 +1,4 @@
-import type { ThreadListAdapter, ThreadMetadata } from "../types";
+import type { ThreadFilterType, ThreadListAdapter, ThreadMetadata } from "../types";
 
 /**
  * In-memory implementation of ThreadListAdapter.
@@ -8,10 +8,14 @@ export class InMemoryThreadListAdapter implements ThreadListAdapter {
   private store = new Map<string, ThreadMetadata>();
   private counter = 0;
 
-  async list(): Promise<ThreadMetadata[]> {
-    return [...this.store.values()]
-      .filter((t) => !t.archived)
-      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+  async list(filter?: ThreadFilterType): Promise<ThreadMetadata[]> {
+    let threads = [...this.store.values()].sort(
+      (a, b) => b.updatedAt.getTime() - a.updatedAt.getTime(),
+    );
+    if (filter === "favorited") {
+      threads = threads.filter((t) => t.favorited);
+    }
+    return threads;
   }
 
   async create(metadata?: Partial<ThreadMetadata>): Promise<ThreadMetadata> {
@@ -22,7 +26,7 @@ export class InMemoryThreadListAdapter implements ThreadListAdapter {
       title: metadata?.title,
       createdAt: metadata?.createdAt ?? now,
       updatedAt: metadata?.updatedAt ?? now,
-      archived: false,
+      favorited: metadata?.favorited ?? false,
     };
     this.store.set(thread.id, thread);
     return thread;
@@ -40,10 +44,18 @@ export class InMemoryThreadListAdapter implements ThreadListAdapter {
     this.store.delete(threadId);
   }
 
-  async archive(threadId: string): Promise<void> {
+  async favorite(threadId: string): Promise<void> {
     const thread = this.store.get(threadId);
     if (thread) {
-      thread.archived = true;
+      thread.favorited = true;
+      thread.updatedAt = new Date();
+    }
+  }
+
+  async unfavorite(threadId: string): Promise<void> {
+    const thread = this.store.get(threadId);
+    if (thread) {
+      thread.favorited = false;
       thread.updatedAt = new Date();
     }
   }
