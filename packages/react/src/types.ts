@@ -262,3 +262,74 @@ export interface ChatProps extends HTMLAttributes<HTMLDivElement> {
   /** Per-tool custom renderers. Keys are toolName strings. Takes priority over useToolUI registry. */
   toolRenderers?: Record<string, ToolUIRendererComponent>;
 }
+
+// ============================================================================
+// RichPromptInput types
+// ============================================================================
+
+/**
+ * Props passed to the caller's suggestion popup render function.
+ */
+export interface SuggestionRenderProps<TItem = unknown> {
+  /** Filtered items returned by the trigger's `items` callback. */
+  items: TItem[];
+  /** Current query string typed after the trigger character. */
+  query: string;
+  /** Call this with a selected item to execute the selection. */
+  command: (item: TItem) => void;
+  /** Returns the DOMRect of the trigger text for popup positioning. */
+  clientRect: (() => DOMRect | null) | null;
+  /** Index of the currently keyboard-selected item. Use this to highlight the active item. */
+  selectedIndex: number;
+}
+
+/**
+ * Configuration for a single trigger (e.g., "/" or "@").
+ */
+/**
+ * Props passed to a custom command node renderer.
+ */
+export interface CommandNodeRenderProps {
+  id: string;
+  label: string;
+  onDelete: () => void;
+}
+
+export interface TriggerConfig<TItem = unknown> {
+  /** Trigger character, e.g., "/" or "@". */
+  char: string;
+  items: (query: string) => TItem[] | Promise<TItem[]>;
+  render: (props: SuggestionRenderProps<TItem>) => ReactNode;
+  onSelect?: (item: TItem) => void;
+  type?: "mention" | "command";
+  /** When true, command-type triggers insert an inline node instead of just calling onSelect. */
+  insertAsTag?: boolean;
+  /** Custom renderer for the inline command node. If omitted, renders plain text "/{label}". Only used when insertAsTag is true. */
+  renderNode?: (props: CommandNodeRenderProps) => ReactNode;
+}
+
+export interface MentionData {
+  id: string;
+  label: string;
+}
+
+export interface CommandData {
+  id: string;
+  label: string;
+}
+
+export interface RichPromptInputSubmitPayload {
+  text: string;
+  mentions: MentionData[];
+  commands: CommandData[];
+}
+
+export interface RichPromptInputProps {
+  triggers?: TriggerConfig<any>[];
+  placeholder?: string;
+  onSubmit?: (payload: RichPromptInputSubmitPayload) => void;
+  chatHelpers?: ChatHelpers;
+  className?: string;
+  disabled?: boolean;
+  autoFocus?: boolean;
+}

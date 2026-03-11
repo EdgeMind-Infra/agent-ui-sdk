@@ -22,6 +22,8 @@ export type { DictationTranscriptProps } from "./components/ai-elements/dictatio
 export { DictationTranscript } from "./components/ai-elements/dictation-transcript";
 // Prompt input primitives (for toolbar extension)
 export { PromptInputButton } from "./components/ai-elements/prompt-input";
+// Rich prompt input (TipTap-based, optional peer deps)
+export { RichPromptInput } from "./components/ai-elements/rich-prompt-input";
 export type { UseBranchedChatOptions, UseBranchedChatReturn } from "./hooks/use-branched-chat";
 export { useBranchedChat } from "./hooks/use-branched-chat";
 // Hooks
@@ -61,14 +63,21 @@ export type {
   ChatMessageProps,
   ChatMessagesProps,
   ChatProps,
+  CommandData,
+  CommandNodeRenderProps,
+  MentionData,
   ModelConfig,
   ReasoningPartProps,
+  RichPromptInputProps,
+  RichPromptInputSubmitPayload,
   SourcePartProps,
+  SuggestionRenderProps,
   TextPartProps,
   ToolApprovalData,
   ToolCallState,
   ToolPartProps,
   ToolUIProps,
   ToolUIRendererComponent,
+  TriggerConfig,
 } from "./types";
 export { DEFAULT_CHAT_LABELS } from "./types";
