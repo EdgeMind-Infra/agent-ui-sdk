@@ -42,15 +42,20 @@ export const DEFAULT_CHAT_LABELS: ChatLabels = {
 
 /**
  * Subset of useChat() return value that Chat component needs.
+ *
+ * @typeParam UI_MESSAGE - The UIMessage subtype carrying typed data parts.
+ *   Defaults to the base `UIMessage` for backwards compatibility.
  */
-export interface ChatHelpers {
-  messages: UIMessage[];
+export interface ChatHelpers<UI_MESSAGE extends UIMessage = UIMessage> {
+  messages: UI_MESSAGE[];
   status: ChatStatus;
   sendMessage: (message: { text: string; files?: FileUIPart[] }) => void;
   stop: () => void;
   error: Error | undefined;
   /** Set messages directly (from useChat). Needed for branch switching. */
-  setMessages?: (messages: UIMessage[] | ((prev: UIMessage[]) => UIMessage[])) => void;
+  setMessages?: (
+    messages: UI_MESSAGE[] | ((prev: UI_MESSAGE[]) => UI_MESSAGE[]),
+  ) => void;
   /** Regenerate assistant response (from useChat). Needed for regeneration. */
   regenerate?: (options?: { messageId?: string }) => Promise<void>;
   /** Respond to a tool approval request (from useChat). */
@@ -255,8 +260,9 @@ export interface ChatComponents {
 /**
  * Props for the top-level Chat component.
  */
-export interface ChatProps extends HTMLAttributes<HTMLDivElement> {
-  chatHelpers: ChatHelpers;
+export interface ChatProps<UI_MESSAGE extends UIMessage = UIMessage>
+  extends HTMLAttributes<HTMLDivElement> {
+  chatHelpers: ChatHelpers<UI_MESSAGE>;
   components?: ChatComponents;
   config?: ChatConfig;
   /** Per-tool custom renderers. Keys are toolName strings. Takes priority over useToolUI registry. */

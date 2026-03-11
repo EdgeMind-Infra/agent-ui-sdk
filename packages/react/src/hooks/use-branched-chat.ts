@@ -6,16 +6,17 @@ import type { UIMessage } from "ai";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ChatHelpers } from "../types";
 
-export interface UseBranchedChatOptions {
+export interface UseBranchedChatOptions<UI_MESSAGE extends UIMessage = UIMessage> {
   /** The chatHelpers from useChat(). Must include setMessages for branch switching. */
-  chatHelpers: ChatHelpers;
+  chatHelpers: ChatHelpers<UI_MESSAGE>;
   /** Optional persistence adapter for thread history. */
   historyAdapter?: ThreadHistoryAdapter;
   /** Thread ID for persistence. Required when historyAdapter is provided. */
   threadId?: string;
 }
 
-export interface UseBranchedChatReturn extends ChatHelpers {
+export interface UseBranchedChatReturn<UI_MESSAGE extends UIMessage = UIMessage>
+  extends ChatHelpers<UI_MESSAGE> {
   /** Get all branch versions for a message (including itself). */
   getBranches: (messageId: string) => UIMessage[];
   /** Switch to a specific branch by message ID. */
@@ -30,13 +31,13 @@ export interface UseBranchedChatReturn extends ChatHelpers {
  * Maintains a MessageRepository tree internally. When the user switches branches,
  * it syncs the active path back to useChat via setMessages().
  */
-export function useBranchedChat({
+export function useBranchedChat<UI_MESSAGE extends UIMessage = UIMessage>({
   chatHelpers,
   historyAdapter,
   threadId,
-}: UseBranchedChatOptions): UseBranchedChatReturn {
+}: UseBranchedChatOptions<UI_MESSAGE>): UseBranchedChatReturn<UI_MESSAGE> {
   const [repository] = useState(() => new MessageRepository());
-  const prevMessagesRef = useRef<UIMessage[]>([]);
+  const prevMessagesRef = useRef<UI_MESSAGE[]>([]);
   const isInternalUpdateRef = useRef(false);
   const [, forceRender] = useState(0);
 
@@ -52,7 +53,8 @@ export function useBranchedChat({
       const messages = repository.getMessages();
       if (messages.length > 0 && chatHelpers.setMessages) {
         isInternalUpdateRef.current = true;
-        chatHelpers.setMessages(messages);
+        // repository stores UIMessage[]; runtime shape is identical to UI_MESSAGE[]
+        chatHelpers.setMessages(messages as UI_MESSAGE[]);
       }
       forceRender((n) => n + 1);
     });
@@ -116,7 +118,7 @@ export function useBranchedChat({
       }
 
       repository.switchToBranch(messageId);
-      const messages = repository.getMessages();
+      const messages = repository.getMessages() as UI_MESSAGE[];
 
       isInternalUpdateRef.current = true;
       chatHelpers.setMessages(messages);
@@ -136,7 +138,7 @@ export function useBranchedChat({
       // Reset repository head to the given message (keep it as the last message).
       repository.resetHead(messageId);
 
-      const truncated = repository.getMessages();
+      const truncated = repository.getMessages() as UI_MESSAGE[];
       isInternalUpdateRef.current = true;
       chatHelpers.setMessages(truncated);
       prevMessagesRef.current = truncated;
