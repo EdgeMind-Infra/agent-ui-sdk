@@ -59,4 +59,11 @@ export class InMemoryThreadListAdapter implements ThreadListAdapter {
       thread.updatedAt = new Date();
     }
   }
+
+  async update(threadId: string, patch: Partial<ThreadMetadata>): Promise<void> {
+    const thread = this.store.get(threadId);
+    if (thread) {
+      Object.assign(thread, patch, { updatedAt: new Date() });
+    }
+  }
 }

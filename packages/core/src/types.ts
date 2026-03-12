@@ -28,6 +28,7 @@ export interface ThreadMetadata {
   createdAt: Date;
   updatedAt: Date;
   favorited?: boolean;
+  extra?: Record<string, unknown>;
 }
 
 /**
@@ -55,4 +56,5 @@ export interface ThreadListAdapter {
   delete(threadId: string): Promise<void>;
   favorite(threadId: string): Promise<void>;
   unfavorite(threadId: string): Promise<void>;
+  update?(threadId: string, patch: Partial<ThreadMetadata>): Promise<void>;
 }

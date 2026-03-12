@@ -1,6 +1,6 @@
 "use client";
 
-import type { ThreadHistoryAdapter } from "@agent-ui-sdk/core";
+import type { ExportedMessage, ThreadHistoryAdapter } from "@agent-ui-sdk/core";
 import { MessageRepository } from "@agent-ui-sdk/core";
 import type { UIMessage } from "ai";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -30,6 +30,10 @@ export interface UseBranchedChatReturn<UI_MESSAGE extends UIMessage = UIMessage>
  *
  * Maintains a MessageRepository tree internally. When the user switches branches,
  * it syncs the active path back to useChat via setMessages().
+ *
+ * Persistence strategy:
+ * - New messages (first appearance of an ID) → immediate append
+ * - Updated messages (same ID, content changed) → debounced append (300ms)
  */
 export function useBranchedChat<UI_MESSAGE extends UIMessage = UIMessage>({
   chatHelpers,
@@ -41,6 +45,55 @@ export function useBranchedChat<UI_MESSAGE extends UIMessage = UIMessage>({
   const isInternalUpdateRef = useRef(false);
   const [, forceRender] = useState(0);
 
+  // Tracking for append + debounce persistence
+  const knownMessageIdsRef = useRef(new Set<string>());
+  const pendingUpdatesRef = useRef(new Map<string, ExportedMessage>());
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Flush pending debounced updates
+  const flushPendingUpdates = useCallback(() => {
+    if (!historyAdapter || !threadId) return;
+    const pending = pendingUpdatesRef.current;
+    if (pending.size === 0) return;
+
+    const messages = [...pending.values()];
+    pending.clear();
+    historyAdapter.append(threadId, messages);
+  }, [historyAdapter, threadId]);
+
+  // Schedule a debounced flush
+  const scheduleDebouncedFlush = useCallback(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      debounceTimerRef.current = null;
+      flushPendingUpdates();
+    }, 300);
+  }, [flushPendingUpdates]);
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+        // Flush remaining updates on unmount
+        flushPendingUpdates();
+      }
+    };
+  }, [flushPendingUpdates]);
+
+  // Reset known IDs when threadId changes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally only re-run on threadId change
+  useEffect(() => {
+    knownMessageIdsRef.current.clear();
+    pendingUpdatesRef.current.clear();
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+  }, [threadId]);
+
   // Load history on mount / threadId change
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally only re-run on threadId change
   useEffect(() => {
@@ -50,6 +103,10 @@ export function useBranchedChat<UI_MESSAGE extends UIMessage = UIMessage>({
     historyAdapter.load(threadId).then((exported) => {
       if (cancelled || exported.length === 0) return;
       repository.import(exported);
+      // Mark all loaded message IDs as known
+      for (const msg of exported) {
+        knownMessageIdsRef.current.add(msg.message.id);
+      }
       const messages = repository.getMessages();
       if (messages.length > 0 && chatHelpers.setMessages) {
         isInternalUpdateRef.current = true;
@@ -78,6 +135,8 @@ export function useBranchedChat<UI_MESSAGE extends UIMessage = UIMessage>({
 
     if (prev === curr) return;
 
+    const newMessages: ExportedMessage[] = [];
+
     // Find new or updated messages
     for (let i = 0; i < curr.length; i++) {
       const message = curr[i]!;
@@ -86,22 +145,34 @@ export function useBranchedChat<UI_MESSAGE extends UIMessage = UIMessage>({
       if (existing) {
         // Update existing message (e.g. streaming updates)
         repository.addOrUpdateMessage(existing.parentId, message);
+
+        // Queue updated message for debounced append
+        if (historyAdapter && threadId) {
+          pendingUpdatesRef.current.set(message.id, {
+            message,
+            parentId: existing.parentId,
+          });
+          scheduleDebouncedFlush();
+        }
       } else {
         // New message — parent is the previous message in the list
         const parentId = i > 0 ? (curr[i - 1]?.id ?? null) : null;
         repository.addOrUpdateMessage(parentId, message);
+        knownMessageIdsRef.current.add(message.id);
+
+        // Collect for immediate append
+        newMessages.push({ message, parentId });
       }
     }
 
     prevMessagesRef.current = curr;
     forceRender((n) => n + 1);
 
-    // Persist if adapter is available — skip when messages are empty
-    // to prevent overwriting stored history on initial mount
-    if (historyAdapter && threadId && curr.length > 0) {
-      historyAdapter.save(threadId, repository.export());
+    // Immediately append new messages
+    if (historyAdapter && threadId && newMessages.length > 0) {
+      historyAdapter.append(threadId, newMessages);
     }
-  }, [chatHelpers.messages, repository, historyAdapter, threadId]);
+  }, [chatHelpers.messages, repository, historyAdapter, threadId, scheduleDebouncedFlush]);
 
   const getBranches = useCallback(
     (messageId: string): UIMessage[] => {
