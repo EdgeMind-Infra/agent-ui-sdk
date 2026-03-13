@@ -228,6 +228,7 @@ export function useBranchedChat<UI_MESSAGE extends UIMessage = UIMessage>({
     setMessages: chatHelpers.setMessages,
     regenerate: chatHelpers.regenerate,
     addToolApprovalResponse: chatHelpers.addToolApprovalResponse,
+    addToolOutput: chatHelpers.addToolOutput,
 
     // Branching additions
     getBranches,

@@ -59,7 +59,19 @@ export interface ChatHelpers<UI_MESSAGE extends UIMessage = UIMessage> {
   /** Regenerate assistant response (from useChat). Needed for regeneration. */
   regenerate?: (options?: { messageId?: string }) => Promise<void>;
   /** Respond to a tool approval request (from useChat). */
-  addToolApprovalResponse?: (opts: { id: string; approved: boolean; reason?: string }) => void;
+  addToolApprovalResponse?: (opts: {
+    id: string;
+    approved: boolean;
+    reason?: string;
+    extra?: Record<string, unknown>;
+  }) => void;
+  /** Write tool output to a tool part (from useChat). */
+  addToolOutput?: (opts: {
+    tool: string;
+    toolCallId: string;
+    output: unknown;
+    state?: "output-available";
+  }) => Promise<void>;
 }
 
 /**
@@ -140,6 +152,17 @@ export interface ChatConfig {
 
   /** Override any subset of UI strings. Falls back to English defaults. */
   labels?: Partial<ChatLabels>;
+
+  /** Hook: triggered after a tool approval response, for syncing with backend confirm API. */
+  onToolApprovalResponse?: (opts: {
+    id: string;
+    approved: boolean;
+    reason?: string;
+    extra?: Record<string, unknown>;
+  }) => void;
+
+  /** Hook: triggered when the user clicks the stop button, for notifying backend to abort. */
+  onStop?: () => void;
 }
 
 /**
@@ -197,7 +220,12 @@ export interface ToolPartProps {
   };
   messageId: string;
   partIndex: number;
-  addToolApprovalResponse?: (opts: { id: string; approved: boolean; reason?: string }) => void;
+  addToolApprovalResponse?: (opts: {
+    id: string;
+    approved: boolean;
+    reason?: string;
+    extra?: Record<string, unknown>;
+  }) => void;
 }
 
 export interface SourcePartProps {
@@ -234,7 +262,12 @@ export interface ToolUIProps<TArgs = unknown, TResult = unknown> {
   messageId: string;
   partIndex: number;
   approval?: ToolApprovalData;
-  addToolApprovalResponse?: (opts: { id: string; approved: boolean; reason?: string }) => void;
+  addToolApprovalResponse?: (opts: {
+    id: string;
+    approved: boolean;
+    reason?: string;
+    extra?: Record<string, unknown>;
+  }) => void;
 }
 
 /**

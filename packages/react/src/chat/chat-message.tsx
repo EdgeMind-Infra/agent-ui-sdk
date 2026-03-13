@@ -118,7 +118,18 @@ export function ChatMessage({
   branches,
   onSwitchBranch,
 }: ChatMessageProps) {
-  const { chatHelpers, components, toolUIRegistry, toolRenderers } = useChatContext();
+  const { chatHelpers, components, config, toolUIRegistry, toolRenderers } = useChatContext();
+
+  // Wrap addToolApprovalResponse: strip `extra` before passing to AI SDK, then fire the hook
+  const wrappedAddToolApprovalResponse = useMemo(() => {
+    const original = chatHelpers.addToolApprovalResponse;
+    if (!original) return undefined;
+    return (opts: { id: string; approved: boolean; reason?: string; extra?: Record<string, unknown> }) => {
+      const { extra, ...sdkOpts } = opts;
+      original(sdkOpts);
+      config.onToolApprovalResponse?.(opts);
+    };
+  }, [chatHelpers.addToolApprovalResponse, config.onToolApprovalResponse]);
 
   // Subscribe to registry changes so we re-render when tools are registered/unregistered
   const registrySnapshot = useSyncExternalStore(
@@ -220,7 +231,7 @@ export function ChatMessage({
                   messageId={message.id}
                   partIndex={i}
                   approval={toolPart.approval}
-                  addToolApprovalResponse={chatHelpers.addToolApprovalResponse}
+                  addToolApprovalResponse={wrappedAddToolApprovalResponse}
                 />
               );
             }
@@ -231,7 +242,7 @@ export function ChatMessage({
                 part={toolPart}
                 messageId={message.id}
                 partIndex={i}
-                addToolApprovalResponse={chatHelpers.addToolApprovalResponse}
+                addToolApprovalResponse={wrappedAddToolApprovalResponse}
               />
             );
           }

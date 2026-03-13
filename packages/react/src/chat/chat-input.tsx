@@ -139,8 +139,13 @@ function ModelItem({
 
 export function ChatInput({ className }: ChatInputProps) {
   const { chatHelpers, config } = useChatContext();
-  const { sendMessage, stop, status } = chatHelpers;
+  const { sendMessage, stop: rawStop, status } = chatHelpers;
   const labels = { ...DEFAULT_CHAT_LABELS, ...config.labels };
+
+  const stop = useCallback(() => {
+    rawStop();
+    config.onStop?.();
+  }, [rawStop, config.onStop]);
   const [text, setText] = useState("");
   const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
 
