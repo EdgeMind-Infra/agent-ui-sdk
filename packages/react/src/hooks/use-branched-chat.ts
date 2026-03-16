@@ -23,6 +23,8 @@ export interface UseBranchedChatReturn<UI_MESSAGE extends UIMessage = UIMessage>
   switchBranch: (messageId: string) => void;
   /** Restore checkpoint: truncates conversation to after a given message. */
   restoreCheckpoint: (messageId: string) => void;
+  /** Whether history is currently being loaded from the adapter. */
+  isHistoryLoading: boolean;
 }
 
 /**
@@ -44,6 +46,7 @@ export function useBranchedChat<UI_MESSAGE extends UIMessage = UIMessage>({
   const prevMessagesRef = useRef<UI_MESSAGE[]>([]);
   const isInternalUpdateRef = useRef(false);
   const [, forceRender] = useState(0);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(!!historyAdapter && !!threadId);
 
   // Tracking for append + debounce persistence
   const knownMessageIdsRef = useRef(new Set<string>());
@@ -97,11 +100,19 @@ export function useBranchedChat<UI_MESSAGE extends UIMessage = UIMessage>({
   // Load history on mount / threadId change
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally only re-run on threadId change
   useEffect(() => {
-    if (!historyAdapter || !threadId) return;
+    if (!historyAdapter || !threadId) {
+      setIsHistoryLoading(false);
+      return;
+    }
 
+    setIsHistoryLoading(true);
     let cancelled = false;
     historyAdapter.load(threadId).then((exported) => {
-      if (cancelled || exported.length === 0) return;
+      if (cancelled) return;
+      if (exported.length === 0) {
+        setIsHistoryLoading(false);
+        return;
+      }
       repository.import(exported);
       // Mark all loaded message IDs as known
       for (const msg of exported) {
@@ -113,6 +124,7 @@ export function useBranchedChat<UI_MESSAGE extends UIMessage = UIMessage>({
         // repository stores UIMessage[]; runtime shape is identical to UI_MESSAGE[]
         chatHelpers.setMessages(messages as UI_MESSAGE[]);
       }
+      setIsHistoryLoading(false);
       forceRender((n) => n + 1);
     });
 
@@ -234,5 +246,6 @@ export function useBranchedChat<UI_MESSAGE extends UIMessage = UIMessage>({
     getBranches,
     switchBranch,
     restoreCheckpoint,
+    isHistoryLoading,
   };
 }
