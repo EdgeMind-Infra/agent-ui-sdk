@@ -73,6 +73,7 @@ export interface ThreadListActions {
   switchThread(threadId: string): void;
   renameThread(threadId: string, title: string): Promise<void>;
   deleteThread(threadId: string): Promise<void>;
+  updateThread(threadId: string, updates: Partial<ThreadMetadata>): void;
   favoriteThread(threadId: string): Promise<void>;
   unfavoriteThread(threadId: string): Promise<void>;
   setFilter(filter: ThreadFilterType): Promise<void>;
@@ -160,6 +161,10 @@ export function ThreadListProvider({ threadListAdapter, children }: ThreadListPr
     [threadListAdapter],
   );
 
+  const updateThread = useCallback((threadId: string, updates: Partial<ThreadMetadata>) => {
+    dispatch({ type: "UPDATE_THREAD", threadId, updates });
+  }, []);
+
   const favoriteThread = useCallback(
     async (threadId: string) => {
       await threadListAdapter.favorite(threadId);
@@ -196,6 +201,7 @@ export function ThreadListProvider({ threadListAdapter, children }: ThreadListPr
       switchThread,
       renameThread,
       deleteThread,
+      updateThread,
       favoriteThread,
       unfavoriteThread,
       setFilter,
@@ -205,6 +211,7 @@ export function ThreadListProvider({ threadListAdapter, children }: ThreadListPr
       switchThread,
       renameThread,
       deleteThread,
+      updateThread,
       favoriteThread,
       unfavoriteThread,
       setFilter,
