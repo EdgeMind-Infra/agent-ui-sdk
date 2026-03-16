@@ -20,6 +20,19 @@ export type { DictationButtonProps } from "./components/ai-elements/dictation-bu
 export { DictationButton } from "./components/ai-elements/dictation-button";
 export type { DictationTranscriptProps } from "./components/ai-elements/dictation-transcript";
 export { DictationTranscript } from "./components/ai-elements/dictation-transcript";
+// AI element primitives
+export type { TextShimmerProps } from "./components/ai-elements/shimmer";
+export { Shimmer } from "./components/ai-elements/shimmer";
+export type {
+  ConversationContentProps,
+  ConversationProps,
+  ConversationScrollButtonProps,
+} from "./components/ai-elements/conversation";
+export {
+  Conversation,
+  ConversationContent,
+  ConversationScrollButton,
+} from "./components/ai-elements/conversation";
 // Prompt input primitives (for toolbar extension)
 export { PromptInputButton } from "./components/ai-elements/prompt-input";
 // Rich prompt input (TipTap-based, optional peer deps)
