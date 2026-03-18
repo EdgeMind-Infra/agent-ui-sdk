@@ -132,6 +132,9 @@ export interface ChatConfig {
   /** Called when web search is toggled. */
   onWebSearchToggle?: (active: boolean) => void;
 
+  /** Extra ReactNode rendered inside the input group, above the textarea (e.g. pending file cards). */
+  headerContent?: ReactNode;
+
   /** Extra ReactNode rendered inside the toolbar (after built-in buttons, before model selector). */
   toolbarExtras?: ReactNode;
 

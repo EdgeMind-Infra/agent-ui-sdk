@@ -165,6 +165,7 @@ export function ChatInput({ className }: ChatInputProps) {
     enableWebSearch,
     webSearchActive,
     onWebSearchToggle,
+    headerContent,
     toolbarExtras,
     toolbarRight,
   } = config;
@@ -269,6 +270,9 @@ export function ChatInput({ className }: ChatInputProps) {
           multiple={enableAttachments}
           onSubmit={handleSubmit}
         >
+          {headerContent && (
+            <PromptInputHeader>{headerContent}</PromptInputHeader>
+          )}
           {enableAttachments && (
             <PromptInputHeader>
               <AttachmentsDisplay />
