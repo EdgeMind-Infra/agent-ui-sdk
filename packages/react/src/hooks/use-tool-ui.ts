@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useChatContext } from "../chat/chat-provider";
-import type { ToolUIProps, ToolUIRendererComponent } from "../types";
+import type { ToolUIRendererComponent } from "../types";
 
 export interface UseToolUIOptions<TArgs = unknown, TResult = unknown> {
   toolName: string;

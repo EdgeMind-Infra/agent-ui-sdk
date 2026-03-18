@@ -11,7 +11,12 @@ import {
 import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import { Message, MessageAction, MessageContent } from "src/components/ai-elements/message";
 import { Button } from "src/components/ui/button";
-import { DEFAULT_CHAT_LABELS, type ChatMessageProps, type ToolCallState, type ToolUIRendererComponent } from "../types";
+import {
+  type ChatMessageProps,
+  DEFAULT_CHAT_LABELS,
+  type ToolCallState,
+  type ToolUIRendererComponent,
+} from "../types";
 import { useChatContext } from "./chat-provider";
 import { ReasoningPart as DefaultReasoningPart } from "./parts/reasoning-part";
 import { SourcePart as DefaultSourcePart } from "./parts/source-part";
@@ -124,7 +129,12 @@ export function ChatMessage({
   const wrappedAddToolApprovalResponse = useMemo(() => {
     const original = chatHelpers.addToolApprovalResponse;
     if (!original) return undefined;
-    return (opts: { id: string; approved: boolean; reason?: string; extra?: Record<string, unknown> }) => {
+    return (opts: {
+      id: string;
+      approved: boolean;
+      reason?: string;
+      extra?: Record<string, unknown>;
+    }) => {
       const { extra, ...sdkOpts } = opts;
       original(sdkOpts);
       config.onToolApprovalResponse?.(opts);

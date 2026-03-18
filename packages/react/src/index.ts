@@ -15,14 +15,6 @@ export { SourcePart } from "./chat/parts/source-part";
 // Part renderers (for custom composition or replacement)
 export { TextPart } from "./chat/parts/text-part";
 export { ToolPart } from "./chat/parts/tool-part";
-// Dictation components
-export type { DictationButtonProps } from "./components/ai-elements/dictation-button";
-export { DictationButton } from "./components/ai-elements/dictation-button";
-export type { DictationTranscriptProps } from "./components/ai-elements/dictation-transcript";
-export { DictationTranscript } from "./components/ai-elements/dictation-transcript";
-// AI element primitives
-export type { TextShimmerProps } from "./components/ai-elements/shimmer";
-export { Shimmer } from "./components/ai-elements/shimmer";
 export type {
   ConversationContentProps,
   ConversationProps,
@@ -33,10 +25,21 @@ export {
   ConversationContent,
   ConversationScrollButton,
 } from "./components/ai-elements/conversation";
+// Dictation components
+export type { DictationButtonProps } from "./components/ai-elements/dictation-button";
+export { DictationButton } from "./components/ai-elements/dictation-button";
+export type { DictationTranscriptProps } from "./components/ai-elements/dictation-transcript";
+export { DictationTranscript } from "./components/ai-elements/dictation-transcript";
+export type { MessageResponseProps } from "./components/ai-elements/message";
+// Message response (Streamdown wrapper with default plugins)
+export { MessageResponse } from "./components/ai-elements/message";
 // Prompt input primitives (for toolbar extension)
 export { PromptInputButton } from "./components/ai-elements/prompt-input";
 // Rich prompt input (TipTap-based, optional peer deps)
 export { RichPromptInput } from "./components/ai-elements/rich-prompt-input";
+// AI element primitives
+export type { TextShimmerProps } from "./components/ai-elements/shimmer";
+export { Shimmer } from "./components/ai-elements/shimmer";
 export type { UseBranchedChatOptions, UseBranchedChatReturn } from "./hooks/use-branched-chat";
 export { useBranchedChat } from "./hooks/use-branched-chat";
 // Hooks
@@ -81,6 +84,7 @@ export type {
   MentionData,
   ModelConfig,
   ReasoningPartProps,
+  RichPromptInputHandle,
   RichPromptInputProps,
   RichPromptInputSubmitPayload,
   SourcePartProps,

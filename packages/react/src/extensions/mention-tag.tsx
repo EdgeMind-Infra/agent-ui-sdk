@@ -2,15 +2,27 @@
 
 import { mergeAttributes, Node } from "@tiptap/core";
 import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
-import { SparklesIcon, TerminalSquareIcon } from "lucide-react";
+import { FileCodeIcon, FileTextIcon, GlobeIcon, ImageIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import type { CommandNodeRenderProps } from "../types";
+
+// ============================================================================
+// Icon mapping by refType
+// ============================================================================
+
+const MENTION_ICONS: Record<string, typeof FileTextIcon> = {
+  file: FileTextIcon,
+  image: ImageIcon,
+  code: FileCodeIcon,
+  doc: FileTextIcon,
+  url: GlobeIcon,
+};
 
 // ============================================================================
 // NodeView component
 // ============================================================================
 
-function CommandTagNodeView(props: { node: any; deleteNode: () => void; extension: any }) {
+function MentionTagNodeView(props: { node: any; deleteNode: () => void; extension: any }) {
   const { node, deleteNode, extension } = props;
   const renderNode = extension.options.renderNode as
     | ((props: CommandNodeRenderProps) => ReactNode)
@@ -22,15 +34,15 @@ function CommandTagNodeView(props: { node: any; deleteNode: () => void; extensio
     onDelete: deleteNode,
   };
 
-  const refType = node.attrs.refType ?? "command";
-  const Icon = refType === "skill" ? SparklesIcon : TerminalSquareIcon;
+  const refType: string = node.attrs.refType ?? "file";
+  const Icon = MENTION_ICONS[refType] ?? FileTextIcon;
 
   return (
-    <NodeViewWrapper as="span" data-slot="command-tag" contentEditable={false}>
+    <NodeViewWrapper as="span" data-slot="mention-tag" contentEditable={false}>
       {renderNode ? (
         renderNode(nodeProps)
       ) : (
-        <span className="inline-flex items-center gap-1 rounded-md bg-violet-500/10 px-1.5 py-0.5 text-[0.85em] font-medium leading-none text-violet-600 dark:text-violet-400">
+        <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-0.5 text-[0.85em] font-medium leading-none text-primary">
           <Icon className="size-3.5" />
           {nodeProps.label}
         </span>
@@ -43,13 +55,13 @@ function CommandTagNodeView(props: { node: any; deleteNode: () => void; extensio
 // Extension
 // ============================================================================
 
-export interface CommandTagOptions {
+export interface MentionTagOptions {
   HTMLAttributes: Record<string, unknown>;
   renderNode?: (props: CommandNodeRenderProps) => ReactNode;
 }
 
-export const CommandTag = Node.create<CommandTagOptions>({
-  name: "commandTag",
+export const MentionTag = Node.create<MentionTagOptions>({
+  name: "mentionTag",
   group: "inline",
   inline: true,
   atom: true,
@@ -57,7 +69,7 @@ export const CommandTag = Node.create<CommandTagOptions>({
   addOptions() {
     return {
       HTMLAttributes: {
-        "data-slot": "command-tag",
+        "data-slot": "mention-tag",
       },
       renderNode: undefined,
     };
@@ -72,21 +84,21 @@ export const CommandTag = Node.create<CommandTagOptions>({
   },
 
   parseHTML() {
-    return [{ tag: 'span[data-type="command-tag"]' }];
+    return [{ tag: 'span[data-type="mention-tag"]' }];
   },
 
   renderHTML({ HTMLAttributes }) {
     return [
       "span",
-      mergeAttributes(this.options.HTMLAttributes, { "data-type": "command-tag" }, HTMLAttributes),
+      mergeAttributes(this.options.HTMLAttributes, { "data-type": "mention-tag" }, HTMLAttributes),
     ];
   },
 
   renderText({ node }) {
-    return `/${node.attrs.label}`;
+    return `@${node.attrs.label}`;
   },
 
   addNodeView() {
-    return ReactNodeViewRenderer(CommandTagNodeView);
+    return ReactNodeViewRenderer(MentionTagNodeView);
   },
 });

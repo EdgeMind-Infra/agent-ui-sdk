@@ -89,9 +89,7 @@ export class LocalStorageThreadListAdapter implements ThreadListAdapter {
   }
 
   async list(filter?: ThreadFilterType): Promise<ThreadMetadata[]> {
-    let threads = this.readThreads().sort(
-      (a, b) => b.updatedAt.getTime() - a.updatedAt.getTime(),
-    );
+    let threads = this.readThreads().sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
     if (filter === "favorited") {
       threads = threads.filter((t) => t.favorited);
     }

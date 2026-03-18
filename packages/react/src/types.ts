@@ -53,9 +53,7 @@ export interface ChatHelpers<UI_MESSAGE extends UIMessage = UIMessage> {
   stop: () => void;
   error: Error | undefined;
   /** Set messages directly (from useChat). Needed for branch switching. */
-  setMessages?: (
-    messages: UI_MESSAGE[] | ((prev: UI_MESSAGE[]) => UI_MESSAGE[]),
-  ) => void;
+  setMessages?: (messages: UI_MESSAGE[] | ((prev: UI_MESSAGE[]) => UI_MESSAGE[])) => void;
   /** Regenerate assistant response (from useChat). Needed for regeneration. */
   regenerate?: (options?: { messageId?: string }) => Promise<void>;
   /** Respond to a tool approval request (from useChat). */
@@ -131,6 +129,9 @@ export interface ChatConfig {
   webSearchActive?: boolean;
   /** Called when web search is toggled. */
   onWebSearchToggle?: (active: boolean) => void;
+
+  /** Trigger configs for RichPromptInput (TipTap). When provided, the textarea is replaced with a TipTap editor supporting / commands and @ mentions. */
+  triggers?: TriggerConfig<any>[];
 
   /** Extra ReactNode rendered inside the input group, above the textarea (e.g. pending file cards). */
   headerContent?: ReactNode;
@@ -344,6 +345,8 @@ export interface TriggerConfig<TItem = unknown> {
   render: (props: SuggestionRenderProps<TItem>) => ReactNode;
   onSelect?: (item: TItem) => void;
   type?: "mention" | "command";
+  /** Default refType for items that don't provide their own (e.g., "file", "skill", "command"). */
+  refType?: string;
   /** When true, command-type triggers insert an inline node instead of just calling onSelect. */
   insertAsTag?: boolean;
   /** Custom renderer for the inline command node. If omitted, renders plain text "/{label}". Only used when insertAsTag is true. */
@@ -353,17 +356,32 @@ export interface TriggerConfig<TItem = unknown> {
 export interface MentionData {
   id: string;
   label: string;
+  refType?: string;
 }
 
 export interface CommandData {
   id: string;
   label: string;
+  refType?: string;
 }
 
 export interface RichPromptInputSubmitPayload {
+  /** 序列化为扩展 Markdown 的完整文本（包含 @[label]{type:id} / /[label]{type:id} 标记） */
   text: string;
   mentions: MentionData[];
   commands: CommandData[];
+}
+
+/** Imperative handle exposed by RichPromptInput via ref */
+export interface RichPromptInputHandle {
+  /** Insert text at the current cursor position (or end if not focused) */
+  insertText: (text: string) => void;
+  /** Focus the editor */
+  focus: () => void;
+  /** Check if the editor is empty */
+  isEmpty: () => boolean;
+  /** Trigger submit programmatically (serializes content and calls onSubmit) */
+  submit: () => void;
 }
 
 export interface RichPromptInputProps {
@@ -374,4 +392,8 @@ export interface RichPromptInputProps {
   className?: string;
   disabled?: boolean;
   autoFocus?: boolean;
+  /** When true, renders only the TipTap editor without wrapper border and submit button. Used when embedded inside ChatInput. */
+  embedded?: boolean;
+  /** Called when the editor empty state changes. Used by ChatInput to disable submit button. */
+  onEmptyChange?: (isEmpty: boolean) => void;
 }

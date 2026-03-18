@@ -1,7 +1,7 @@
 "use client";
 
-import { cn } from "src/lib/utils";
 import type { UIMessage } from "ai";
+import { cn } from "src/lib/utils";
 import type { ChatProps } from "../types";
 import { ChatInput } from "./chat-input";
 import { ChatMessages } from "./chat-messages";

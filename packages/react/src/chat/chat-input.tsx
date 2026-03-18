@@ -2,7 +2,7 @@
 
 import { createFallbackDictationAdapter } from "@agent-ui-sdk/core";
 import { BrainIcon, CheckIcon, GlobeIcon } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   Attachment,
   AttachmentPreview,
@@ -35,13 +35,14 @@ import {
   PromptInputFooter,
   PromptInputHeader,
   PromptInputSubmit,
-  PromptInputTextarea,
   PromptInputTools,
   usePromptInputAttachments,
 } from "src/components/ai-elements/prompt-input";
 import { Suggestion, Suggestions } from "src/components/ai-elements/suggestion";
 import { cn } from "src/lib/utils";
-import { DEFAULT_CHAT_LABELS, type ChatInputProps, type ModelConfig } from "../types";
+import { RichPromptInput } from "../components/ai-elements/rich-prompt-input";
+import type { RichPromptInputHandle, RichPromptInputSubmitPayload } from "../types";
+import { type ChatInputProps, DEFAULT_CHAT_LABELS, type ModelConfig } from "../types";
 import { useChatContext } from "./chat-provider";
 
 // ============================================================================
@@ -146,7 +147,8 @@ export function ChatInput({ className }: ChatInputProps) {
     rawStop();
     config.onStop?.();
   }, [rawStop, config.onStop]);
-  const [text, setText] = useState("");
+  const richInputRef = useRef<RichPromptInputHandle>(null);
+  const [editorEmpty, setEditorEmpty] = useState(true);
   const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
 
   const {
@@ -165,10 +167,12 @@ export function ChatInput({ className }: ChatInputProps) {
     enableWebSearch,
     webSearchActive,
     onWebSearchToggle,
+    triggers,
     headerContent,
     toolbarExtras,
     toolbarRight,
   } = config;
+
 
   // Resolve dictation adapter: explicit prop > backward-compat fallback
   const dictationAdapter = useMemo(() => {
@@ -198,20 +202,32 @@ export function ChatInput({ className }: ChatInputProps) {
     return Array.from(groups.entries());
   }, [models]);
 
+  // Form submit handler — PromptInput calls this on form submit (button click).
+  // Since TipTap is a contenteditable div (not a form control), FormData won't
+  // contain the text. We delegate to RichPromptInput's submit() via ref.
   const handleSubmit = useCallback(
     (message: PromptInputMessage) => {
-      const hasText = Boolean(message.text);
       const hasFiles = Boolean(message.files?.length);
-      if (!(hasText || hasFiles)) return;
-      sendMessage({ text: message.text, files: message.files });
-      setText("");
+
+      // Trigger TipTap's internal submit (serializes content + calls onSubmit prop)
+      richInputRef.current?.submit();
+
+      // Also send files if any (independently of TipTap text)
+      if (hasFiles) {
+        sendMessage({ text: "", files: message.files });
+      }
     },
     [sendMessage],
   );
 
-  const handleTextChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setText(e.target.value);
-  }, []);
+  // Handler for RichPromptInput's onSubmit prop — called by Enter key or ref.submit()
+  const handleRichSubmit = useCallback(
+    (payload: RichPromptInputSubmitPayload) => {
+      if (!payload.text) return;
+      sendMessage({ text: payload.text });
+    },
+    [sendMessage],
+  );
 
   const handleSuggestionClick = useCallback(
     (suggestion: string) => {
@@ -225,7 +241,8 @@ export function ChatInput({ className }: ChatInputProps) {
   );
 
   const handleTranscriptionComplete = useCallback((transcript: string) => {
-    setText((prev) => (prev ? `${prev} ${transcript}` : transcript));
+    richInputRef.current?.insertText(transcript);
+    richInputRef.current?.focus();
   }, []);
 
   const handleThinkingToggle = useCallback(() => {
@@ -270,19 +287,22 @@ export function ChatInput({ className }: ChatInputProps) {
           multiple={enableAttachments}
           onSubmit={handleSubmit}
         >
-          {headerContent && (
-            <PromptInputHeader>{headerContent}</PromptInputHeader>
-          )}
+          {headerContent && <PromptInputHeader>{headerContent}</PromptInputHeader>}
           {enableAttachments && (
             <PromptInputHeader>
               <AttachmentsDisplay />
             </PromptInputHeader>
           )}
           <PromptInputBody>
-            <PromptInputTextarea
-              value={text}
-              onChange={handleTextChange}
+            <RichPromptInput
+              ref={richInputRef}
+              triggers={triggers}
               placeholder={labels.placeholder}
+              onSubmit={handleRichSubmit}
+              onEmptyChange={setEditorEmpty}
+              disabled={status === "streaming" || status === "submitted"}
+              autoFocus
+              embedded
             />
           </PromptInputBody>
           <PromptInputFooter>
@@ -364,7 +384,7 @@ export function ChatInput({ className }: ChatInputProps) {
                 />
               )}
               <PromptInputSubmit
-                disabled={!text.trim() && status !== "streaming" && status !== "submitted"}
+                disabled={editorEmpty && status !== "streaming" && status !== "submitted"}
                 status={status}
                 onStop={stop}
                 tooltip={labels.send}
