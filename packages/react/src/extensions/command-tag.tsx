@@ -26,7 +26,7 @@ function CommandTagNodeView(props: { node: any; deleteNode: () => void; extensio
   const Icon = refType === "skill" ? SparklesIcon : TerminalSquareIcon;
 
   return (
-    <NodeViewWrapper as="span" data-slot="command-tag" contentEditable={false}>
+    <NodeViewWrapper as="span" className="align-middle" data-slot="command-tag" contentEditable={false}>
       {renderNode ? (
         renderNode(nodeProps)
       ) : (

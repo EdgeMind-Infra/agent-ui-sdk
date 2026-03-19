@@ -38,7 +38,7 @@ function MentionTagNodeView(props: { node: any; deleteNode: () => void; extensio
   const Icon = MENTION_ICONS[refType] ?? FileTextIcon;
 
   return (
-    <NodeViewWrapper as="span" data-slot="mention-tag" contentEditable={false}>
+    <NodeViewWrapper as="span" className="align-middle" data-slot="mention-tag" contentEditable={false}>
       {renderNode ? (
         renderNode(nodeProps)
       ) : (

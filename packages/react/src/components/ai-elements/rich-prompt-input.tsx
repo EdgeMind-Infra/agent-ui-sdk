@@ -402,6 +402,9 @@ export function RichPromptInput({
             pointer-events: none;
             height: 0;
           }
+          .aui-rich-prompt-input-editor .react-renderer {
+            vertical-align: middle;
+          }
         `}</style>
         <EditorContent
           editor={editor}
@@ -428,6 +431,11 @@ export function RichPromptInput({
         className,
       )}
     >
+      <style>{`
+        .aui-rich-prompt-input-editor .react-renderer {
+          vertical-align: middle;
+        }
+      `}</style>
       <EditorContent
         editor={editor}
         className="min-h-6 max-h-48 flex-1 overflow-y-auto text-sm outline-none [&_.tiptap]:outline-none [&_.tiptap_p]:m-0"
