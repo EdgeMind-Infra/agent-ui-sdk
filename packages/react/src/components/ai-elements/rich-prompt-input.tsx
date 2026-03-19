@@ -331,12 +331,16 @@ export function RichPromptInput({
     ed.commands.clearContent(true);
   }, [onSubmit, chatHelpers]);
 
+  // Ref to always hold the latest handleSubmit — avoids stale closure in SubmitOnEnter extension
+  const handleSubmitRef = useRef(handleSubmit);
+  handleSubmitRef.current = handleSubmit;
+
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
       ...extensions,
       SubmitOnEnter.configure({
-        onSubmit: () => handleSubmit(),
+        onSubmit: () => handleSubmitRef.current(),
         isSuggestionOpen: () => suggestionOpenRef.current,
       }),
     ],

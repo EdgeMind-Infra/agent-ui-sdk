@@ -308,7 +308,7 @@ export function ChatInput({ className }: ChatInputProps) {
               placeholder={labels.placeholder}
               onSubmit={handleRichSubmit}
               onEmptyChange={setEditorEmpty}
-              disabled={status === "streaming" || status === "submitted"}
+              disabled={false}
               autoFocus
               embedded
             />
