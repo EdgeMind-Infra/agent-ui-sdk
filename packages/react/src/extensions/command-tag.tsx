@@ -2,7 +2,7 @@
 
 import { mergeAttributes, Node } from "@tiptap/core";
 import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
-import { SparklesIcon, TerminalSquareIcon } from "lucide-react";
+import { SparklesIcon, TerminalSquareIcon, XIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import type { CommandNodeRenderProps } from "../types";
 
@@ -30,9 +30,20 @@ function CommandTagNodeView(props: { node: any; deleteNode: () => void; extensio
       {renderNode ? (
         renderNode(nodeProps)
       ) : (
-        <span className="inline-flex items-center gap-1 rounded-md bg-violet-500/10 px-1.5 py-0.5 text-[0.85em] font-medium leading-none text-violet-600 dark:text-violet-400">
+        <span className="group/chip relative inline-flex items-center gap-1 rounded-md bg-violet-500/10 px-1.5 py-0.5 text-[0.85em] font-medium leading-none text-violet-600 transition-colors hover:bg-violet-500/20 dark:text-violet-400">
           <Icon className="size-3.5" />
           {nodeProps.label}
+          <button
+            type="button"
+            className="absolute -right-1.5 -top-1.5 flex size-3.5 scale-0 cursor-pointer items-center justify-center rounded-full border-0 bg-muted-foreground/80 p-0 text-background transition-transform group-hover/chip:scale-100"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              deleteNode();
+            }}
+          >
+            <XIcon className="size-2.5" />
+          </button>
         </span>
       )}
     </NodeViewWrapper>

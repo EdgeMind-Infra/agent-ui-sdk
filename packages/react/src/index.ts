@@ -81,6 +81,7 @@ export type {
   ChatProps,
   CommandData,
   CommandNodeRenderProps,
+  InputHelpers,
   MentionData,
   ModelConfig,
   ReasoningPartProps,

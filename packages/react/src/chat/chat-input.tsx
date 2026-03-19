@@ -173,7 +173,6 @@ export function ChatInput({ className }: ChatInputProps) {
     toolbarRight,
   } = config;
 
-
   // Resolve dictation adapter: explicit prop > backward-compat fallback
   const dictationAdapter = useMemo(() => {
     if (dictationAdapterProp) return dictationAdapterProp;
@@ -261,6 +260,15 @@ export function ChatInput({ className }: ChatInputProps) {
     [onModelChange],
   );
 
+  const inputHelpers = useMemo(
+    () => ({
+      insertCommandTag: (attrs: { id: string; label: string; refType?: string }) => {
+        richInputRef.current?.insertCommandTag(attrs);
+      },
+    }),
+    [],
+  );
+
   const hasTools =
     enableAttachments ||
     enableThinking ||
@@ -334,7 +342,7 @@ export function ChatInput({ className }: ChatInputProps) {
                     <GlobeIcon size={16} />
                   </PromptInputButton>
                 )}
-                {toolbarExtras}
+                {typeof toolbarExtras === "function" ? toolbarExtras(inputHelpers) : toolbarExtras}
                 {models && models.length > 0 && (
                   <ModelSelector onOpenChange={setModelSelectorOpen} open={modelSelectorOpen}>
                     <ModelSelectorTrigger asChild>

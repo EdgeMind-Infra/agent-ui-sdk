@@ -83,6 +83,12 @@ export interface ModelConfig {
   group?: string;
 }
 
+/** Helpers exposed by ChatInput to toolbar extensions. */
+export interface InputHelpers {
+  /** Insert a command/skill tag (chip) into the input editor. */
+  insertCommandTag: (attrs: { id: string; label: string; refType?: string }) => void;
+}
+
 /**
  * Configuration for Chat features.
  */
@@ -136,8 +142,9 @@ export interface ChatConfig {
   /** Extra ReactNode rendered inside the input group, above the textarea (e.g. pending file cards). */
   headerContent?: ReactNode;
 
-  /** Extra ReactNode rendered inside the toolbar (after built-in buttons, before model selector). */
-  toolbarExtras?: ReactNode;
+  /** Extra ReactNode rendered inside the toolbar (after built-in buttons, before model selector).
+   *  Can be a ReactNode or a render function receiving input helpers. */
+  toolbarExtras?: ReactNode | ((helpers: InputHelpers) => ReactNode);
 
   /** Extra ReactNode rendered to the left of the submit button. */
   toolbarRight?: ReactNode;
@@ -376,6 +383,8 @@ export interface RichPromptInputSubmitPayload {
 export interface RichPromptInputHandle {
   /** Insert text at the current cursor position (or end if not focused) */
   insertText: (text: string) => void;
+  /** Insert a command/skill tag (chip) at the current cursor position */
+  insertCommandTag: (attrs: { id: string; label: string; refType?: string }) => void;
   /** Focus the editor */
   focus: () => void;
   /** Check if the editor is empty */

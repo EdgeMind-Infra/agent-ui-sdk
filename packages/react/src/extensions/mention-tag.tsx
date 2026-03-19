@@ -2,7 +2,7 @@
 
 import { mergeAttributes, Node } from "@tiptap/core";
 import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
-import { FileCodeIcon, FileTextIcon, GlobeIcon, ImageIcon } from "lucide-react";
+import { FileCodeIcon, FileTextIcon, GlobeIcon, ImageIcon, XIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import type { CommandNodeRenderProps } from "../types";
 
@@ -42,9 +42,20 @@ function MentionTagNodeView(props: { node: any; deleteNode: () => void; extensio
       {renderNode ? (
         renderNode(nodeProps)
       ) : (
-        <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-0.5 text-[0.85em] font-medium leading-none text-primary">
+        <span className="group/chip relative inline-flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-0.5 text-[0.85em] font-medium leading-none text-primary transition-colors hover:bg-primary/20">
           <Icon className="size-3.5" />
           {nodeProps.label}
+          <button
+            type="button"
+            className="absolute -right-1.5 -top-1.5 flex size-3.5 scale-0 cursor-pointer items-center justify-center rounded-full border-0 bg-muted-foreground/80 p-0 text-background transition-transform group-hover/chip:scale-100"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              deleteNode();
+            }}
+          >
+            <XIcon className="size-2.5" />
+          </button>
         </span>
       )}
     </NodeViewWrapper>

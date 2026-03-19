@@ -7,6 +7,7 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import type { SuggestionOptions, SuggestionProps } from "@tiptap/suggestion";
 import { CornerDownLeftIcon, SquareIcon } from "lucide-react";
+import type { Ref } from "react";
 import {
   createContext,
   useCallback,
@@ -17,7 +18,6 @@ import {
   useRef,
   useState,
 } from "react";
-import type { Ref } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "src/lib/utils";
 import { CommandTag } from "../../extensions/command-tag";
@@ -363,6 +363,20 @@ export function RichPromptInput({
       insertText: (text: string) => {
         if (!editor) return;
         editor.chain().focus().insertContent(text).run();
+      },
+      insertCommandTag: (attrs: { id: string; label: string; refType?: string }) => {
+        if (!editor) return;
+        editor
+          .chain()
+          .focus()
+          .insertContent([
+            {
+              type: "commandTag",
+              attrs: { id: attrs.id, label: attrs.label, refType: attrs.refType ?? "skill" },
+            },
+            { type: "text", text: " " },
+          ])
+          .run();
       },
       focus: () => {
         editor?.chain().focus().run();
