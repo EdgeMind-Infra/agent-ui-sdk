@@ -368,6 +368,10 @@ export function RichPromptInput({
         if (!editor) return;
         editor.chain().focus().insertContent(text).run();
       },
+      setContent: (text: string) => {
+        if (!editor) return;
+        editor.chain().focus().clearContent().insertContent(text).run();
+      },
       insertCommandTag: (attrs: { id: string; label: string; refType?: string }) => {
         if (!editor) return;
         editor

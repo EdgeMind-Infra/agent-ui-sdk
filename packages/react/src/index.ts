@@ -77,6 +77,7 @@ export type {
   ChatInputProps,
   ChatLabels,
   ChatMessageProps,
+  ChatInputHandle,
   ChatMessagesProps,
   ChatProps,
   CommandData,

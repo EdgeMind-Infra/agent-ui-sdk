@@ -194,6 +194,19 @@ export interface ChatMessageProps {
  */
 export interface ChatInputProps {
   className?: string;
+  ref?: import("react").Ref<ChatInputHandle>;
+}
+
+/**
+ * Imperative handle exposed by ChatInput via ref.
+ */
+export interface ChatInputHandle {
+  /** Insert text into the rich editor at cursor position. */
+  insertText: (text: string) => void;
+  /** Clear the editor and set new text content. */
+  setContent: (text: string) => void;
+  /** Focus the rich editor. */
+  focus: () => void;
 }
 
 /**
@@ -385,6 +398,8 @@ export interface RichPromptInputHandle {
   insertText: (text: string) => void;
   /** Insert a command/skill tag (chip) at the current cursor position */
   insertCommandTag: (attrs: { id: string; label: string; refType?: string }) => void;
+  /** Clear the editor and set new text content */
+  setContent: (text: string) => void;
   /** Focus the editor */
   focus: () => void;
   /** Check if the editor is empty */

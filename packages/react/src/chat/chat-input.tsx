@@ -2,7 +2,7 @@
 
 import { createFallbackDictationAdapter } from "@agent-ui-sdk/core";
 import { BrainIcon, CheckIcon, GlobeIcon } from "lucide-react";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useImperativeHandle, useMemo, useRef, useState } from "react";
 import {
   Attachment,
   AttachmentPreview,
@@ -41,7 +41,7 @@ import {
 import { Suggestion, Suggestions } from "src/components/ai-elements/suggestion";
 import { cn } from "src/lib/utils";
 import { RichPromptInput } from "../components/ai-elements/rich-prompt-input";
-import type { RichPromptInputHandle, RichPromptInputSubmitPayload } from "../types";
+import type { ChatInputHandle, RichPromptInputHandle, RichPromptInputSubmitPayload } from "../types";
 import { type ChatInputProps, DEFAULT_CHAT_LABELS, type ModelConfig } from "../types";
 import { useChatContext } from "./chat-provider";
 
@@ -138,7 +138,7 @@ function ModelItem({
 // ChatInput
 // ============================================================================
 
-export function ChatInput({ className }: ChatInputProps) {
+export function ChatInput({ className, ref }: ChatInputProps) {
   const { chatHelpers, config } = useChatContext();
   const { sendMessage, stop: rawStop, status } = chatHelpers;
   const labels = { ...DEFAULT_CHAT_LABELS, ...config.labels };
@@ -150,6 +150,22 @@ export function ChatInput({ className }: ChatInputProps) {
   const richInputRef = useRef<RichPromptInputHandle>(null);
   const [editorEmpty, setEditorEmpty] = useState(true);
   const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      insertText: (text: string) => {
+        richInputRef.current?.insertText(text);
+      },
+      setContent: (text: string) => {
+        richInputRef.current?.setContent(text);
+      },
+      focus: () => {
+        richInputRef.current?.focus();
+      },
+    }),
+    [],
+  );
 
   const {
     suggestions,
