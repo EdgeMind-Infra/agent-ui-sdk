@@ -17,7 +17,7 @@ import {
   TooltipTrigger,
 } from "src/components/ui/tooltip";
 import { cn } from "src/lib/utils";
-import { Streamdown } from "streamdown";
+import { defaultRemarkPlugins, Streamdown } from "streamdown";
 
 export type MessageProps = HTMLAttributes<HTMLDivElement> & {
   from: UIMessage["role"];
@@ -276,12 +276,16 @@ export const MessageBranchPage = ({ className, ...props }: MessageBranchPageProp
 export type MessageResponseProps = ComponentProps<typeof Streamdown>;
 
 const streamdownPlugins = { cjk, code, math, mermaid };
+const defaultRemarkPluginsList = Object.values(defaultRemarkPlugins);
 
 export const MessageResponse = memo(
-  ({ className, ...props }: MessageResponseProps) => (
+  ({ className, remarkPlugins, ...props }: MessageResponseProps) => (
     <Streamdown
       className={cn("size-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0", className)}
       plugins={streamdownPlugins}
+      remarkPlugins={
+        remarkPlugins ? [...defaultRemarkPluginsList, ...remarkPlugins] : undefined
+      }
       {...props}
     />
   ),
