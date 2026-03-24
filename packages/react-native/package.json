@@ -6,7 +6,10 @@
   "sideEffects": false,
   "exports": {
     ".": {
-      "react-native": "./src/index.ts",
+      "react-native": {
+        "types": "./dist/index.d.ts",
+        "default": "./src/index.ts"
+      },
       "import": {
         "types": "./dist/index.d.ts",
         "default": "./dist/index.js"
