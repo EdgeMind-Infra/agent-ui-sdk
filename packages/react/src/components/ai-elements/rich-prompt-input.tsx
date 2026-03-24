@@ -217,7 +217,7 @@ function buildSuggestionRender(
           return true;
         }
 
-        if (key === "Enter") {
+        if (key === "Enter" || key === "Tab") {
           const item = currentItems[currentSelectedIndex];
           if (item != null && currentCommand) {
             currentCommand(item);
