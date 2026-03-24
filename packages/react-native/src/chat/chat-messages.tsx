@@ -7,17 +7,6 @@ import { Skeleton } from "../ui/skeleton";
 import { ChatMessage } from "./chat-message";
 import { useChatContext } from "./chat-provider";
 
-// Try to use FlashList if available, fallback to FlatList
-let FlashListComponent: typeof FlatList | null = null;
-try {
-  const mod = require("@shopify/flash-list");
-  FlashListComponent = mod.FlashList;
-} catch {
-  // FlashList not installed, will use FlatList
-}
-
-const ListComponent = FlashListComponent ?? FlatList;
-
 export function ChatMessages({ className }: ChatMessagesProps) {
   const { chatHelpers, components } = useChatContext();
   const { messages, status } = chatHelpers;
@@ -47,20 +36,18 @@ export function ChatMessages({ className }: ChatMessagesProps) {
 
   const invertedMessages = [...messages].reverse();
 
-  const extraProps = FlashListComponent
-    ? { estimatedItemSize: 100 }
-    : { windowSize: 10, maxToRenderPerBatch: 10 };
-
   return (
     <View className={cn("flex-1", className)}>
-      <ListComponent
-        ref={listRef as React.RefObject<FlatList<UIMessage>>}
+      <FlatList
+        ref={listRef}
         data={invertedMessages}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         inverted
         onScroll={handleScroll}
         scrollEventThrottle={100}
+        windowSize={10}
+        maxToRenderPerBatch={10}
         contentContainerClassName="pb-2"
         ListFooterComponent={
           status === "submitted" ? (
@@ -69,7 +56,6 @@ export function ChatMessages({ className }: ChatMessagesProps) {
             </View>
           ) : null
         }
-        {...extraProps}
       />
     </View>
   );
