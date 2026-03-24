@@ -1,13 +1,45 @@
-import { useState } from "react";
+import type { ComponentType } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { View } from "react-native";
 import { cn } from "../../lib/utils";
-import type { ToolPartProps } from "../../types";
+import type { ToolPartProps, ToolUIProps } from "../../types";
 import { Button } from "../../ui/button";
 import { Card, CardContent, CardHeader } from "../../ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../../ui/collapsible";
 import { Text } from "../../ui/text";
+import { useChatContext } from "../chat-provider";
 
-export function ToolPart({ part }: ToolPartProps) {
+export function ToolPart({ part, messageId, partIndex }: ToolPartProps) {
+  const { toolUIRegistry, toolRenderers } = useChatContext();
+  const toolName = part.toolName ?? part.type.replace("tool-", "");
+
+  // Check registry for custom renderer
+  const registrySnapshot = useSyncExternalStore(
+    toolUIRegistry.subscribe,
+    toolUIRegistry.getSnapshot,
+  );
+  const CustomRenderer = (registrySnapshot[toolName] ?? toolRenderers?.[toolName]) as
+    | ComponentType<ToolUIProps>
+    | undefined;
+
+  if (CustomRenderer) {
+    return (
+      <CustomRenderer
+        input={part.input}
+        output={part.output}
+        state={part.state}
+        toolCallId={part.toolCallId}
+        toolName={toolName}
+        messageId={messageId}
+        partIndex={partIndex}
+      />
+    );
+  }
+
+  return <DefaultToolPart part={part} messageId={messageId} partIndex={partIndex} />;
+}
+
+function DefaultToolPart({ part }: ToolPartProps) {
   const [open, setOpen] = useState(false);
   const isError = part.state === "result" && !!part.errorText;
   const isLoading =

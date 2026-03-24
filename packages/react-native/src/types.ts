@@ -5,14 +5,14 @@ import type { ViewProps } from "react-native";
 /**
  * Subset of useChat() return value that Chat component needs.
  */
-export interface ChatHelpers {
-  messages: UIMessage[];
+export interface ChatHelpers<UI_MESSAGE extends UIMessage = UIMessage> {
+  messages: UI_MESSAGE[];
   status: ChatStatus;
   sendMessage: (message: { text: string; files?: FileUIPart[] }) => void;
   stop: () => void;
   error: Error | undefined;
   /** Set messages directly (from useChat). Needed for branch switching. */
-  setMessages?: (messages: UIMessage[] | ((prev: UIMessage[]) => UIMessage[])) => void;
+  setMessages?: (messages: UI_MESSAGE[] | ((prev: UI_MESSAGE[]) => UI_MESSAGE[])) => void;
   /** Regenerate assistant response (from useChat). Needed for regeneration. */
   regenerate?: (options?: { messageId?: string }) => Promise<void>;
 }
@@ -115,10 +115,31 @@ export interface ChatComponents {
 }
 
 /**
+ * Props for a custom tool UI renderer.
+ */
+export interface ToolUIProps<TArgs = unknown, TResult = unknown> {
+  input: TArgs;
+  output: TResult;
+  state: string;
+  toolCallId: string;
+  toolName: string;
+  messageId: string;
+  partIndex: number;
+}
+
+/**
+ * A React component that renders a custom tool UI.
+ */
+export type ToolUIRendererComponent<TArgs = unknown, TResult = unknown> = ComponentType<
+  ToolUIProps<TArgs, TResult>
+>;
+
+/**
  * Props for the top-level Chat component.
  */
 export interface ChatProps extends ViewProps {
   chatHelpers: ChatHelpers;
   components?: ChatComponents;
   config?: ChatConfig;
+  toolRenderers?: Record<string, ToolUIRendererComponent>;
 }
