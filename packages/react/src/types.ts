@@ -13,6 +13,7 @@ export interface ChatLabels {
   // Input
   placeholder: string;
   send: string;
+  stop: string;
   think: string;
   search: string;
   voiceInput: string;
@@ -30,6 +31,7 @@ export const DEFAULT_CHAT_LABELS: ChatLabels = {
   retry: "Retry",
   placeholder: "Type a message...",
   send: "Send",
+  stop: "Stop",
   think: "Think",
   search: "Search",
   voiceInput: "Voice input",

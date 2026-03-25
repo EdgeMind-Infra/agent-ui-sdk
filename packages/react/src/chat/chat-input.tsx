@@ -293,7 +293,7 @@ export function ChatInput({ className, ref }: ChatInputProps) {
     (models && models.length > 0);
 
   return (
-    <div className={cn("shrink-0 pb-3", className)}>
+    <div className={cn("shrink-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]", className)}>
       {suggestions && suggestions.length > 0 && (
         <Suggestions className="mx-auto w-full max-w-3xl px-5">
           {suggestions.map((suggestion) => (
@@ -412,6 +412,8 @@ export function ChatInput({ className, ref }: ChatInputProps) {
                 status={status}
                 onStop={stop}
                 tooltip={labels.send}
+                stopLabel={labels.stop}
+                sendLabel={labels.send}
               />
             </div>
           </PromptInputFooter>
