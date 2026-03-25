@@ -1,10 +1,10 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import { Platform, Pressable } from "react-native";
-import { cn } from "../lib/utils";
+import { cn, staticCn } from "../lib/utils";
 import { TextClassContext } from "./text";
 
 const buttonVariants = cva(
-  cn(
+  staticCn(
     "group shrink-0 flex-row items-center justify-center gap-2 rounded-md shadow-none",
     Platform.select({
       web: "focus-visible:border-ring focus-visible:ring-ring/50 whitespace-nowrap outline-none transition-all focus-visible:ring-[3px] disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0",
@@ -13,23 +13,23 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: cn(
+        default: staticCn(
           "bg-primary active:bg-primary/90 shadow-sm shadow-black/5",
           Platform.select({ web: "hover:bg-primary/90" }),
         ),
-        destructive: cn(
+        destructive: staticCn(
           "bg-destructive active:bg-destructive/90 shadow-sm shadow-black/5",
           Platform.select({ web: "hover:bg-destructive/90" }),
         ),
-        outline: cn(
+        outline: staticCn(
           "border-border bg-background active:bg-accent border shadow-sm shadow-black/5",
           Platform.select({ web: "hover:bg-accent" }),
         ),
-        secondary: cn(
+        secondary: staticCn(
           "bg-secondary active:bg-secondary/80 shadow-sm shadow-black/5",
           Platform.select({ web: "hover:bg-secondary/80" }),
         ),
-        ghost: cn("active:bg-accent", Platform.select({ web: "hover:bg-accent" })),
+        ghost: staticCn("active:bg-accent", Platform.select({ web: "hover:bg-accent" })),
         link: "",
       },
       size: {
@@ -47,7 +47,7 @@ const buttonVariants = cva(
 );
 
 const buttonTextVariants = cva(
-  cn(
+  staticCn(
     "text-foreground text-sm font-medium",
     Platform.select({ web: "pointer-events-none transition-colors" }),
   ),
@@ -56,13 +56,13 @@ const buttonTextVariants = cva(
       variant: {
         default: "text-primary-foreground",
         destructive: "text-white",
-        outline: cn(
+        outline: staticCn(
           "group-active:text-accent-foreground",
           Platform.select({ web: "group-hover:text-accent-foreground" }),
         ),
         secondary: "text-secondary-foreground",
         ghost: "group-active:text-accent-foreground",
-        link: cn(
+        link: staticCn(
           "text-primary group-active:underline",
           Platform.select({ web: "underline-offset-4 group-hover:underline" }),
         ),

@@ -2,25 +2,25 @@ import * as Slot from "@rn-primitives/slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 import { Platform, Text as RNText, type Role } from "react-native";
-import { cn } from "../lib/utils";
+import { cn, staticCn } from "../lib/utils";
 
-const textVariants = cva(cn("text-foreground text-base", Platform.select({ web: "select-text" })), {
+const textVariants = cva(staticCn("text-foreground text-base", Platform.select({ web: "select-text" })), {
   variants: {
     variant: {
       default: "",
-      h1: cn(
+      h1: staticCn(
         "text-center text-4xl font-extrabold tracking-tight",
         Platform.select({ web: "scroll-m-20 text-balance" }),
       ),
-      h2: cn(
+      h2: staticCn(
         "border-border border-b pb-2 text-3xl font-semibold tracking-tight",
         Platform.select({ web: "scroll-m-20 first:mt-0" }),
       ),
-      h3: cn("text-2xl font-semibold tracking-tight", Platform.select({ web: "scroll-m-20" })),
-      h4: cn("text-xl font-semibold tracking-tight", Platform.select({ web: "scroll-m-20" })),
+      h3: staticCn("text-2xl font-semibold tracking-tight", Platform.select({ web: "scroll-m-20" })),
+      h4: staticCn("text-xl font-semibold tracking-tight", Platform.select({ web: "scroll-m-20" })),
       p: "mt-3 leading-7 sm:mt-6",
       blockquote: "mt-4 border-l-2 pl-3 italic sm:mt-6 sm:pl-6",
-      code: cn("bg-muted relative rounded px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold"),
+      code: "bg-muted relative rounded px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold",
       lead: "text-muted-foreground text-xl",
       large: "text-lg font-semibold",
       small: "text-sm font-medium leading-none",
