@@ -161,9 +161,6 @@ packages/
   core/              Platform-agnostic core (segment engine, registry, types)
   react/             React web styled components (Tailwind + ai-elements)
   react-native/      React Native styled components (planned)
-examples/
-  web/               Next.js 16 demo app
-  rn/                Expo 55 demo app
 ```
 
 **Dependency flow:** `react → core` and `react-native → core`
