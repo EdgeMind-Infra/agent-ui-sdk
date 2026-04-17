@@ -1,35 +1,38 @@
-import type { ComponentType } from "react";
-import { useEffect } from "react";
-import { useAgentUI } from "../provider";
+"use client";
 
-export interface UseToolUIOptions<TInput = unknown, TOutput = unknown> {
+import { useEffect } from "react";
+import { useChatContext } from "../chat/chat-provider";
+import type { ToolUIRendererComponent } from "../types";
+
+export interface UseToolUIOptions<TArgs = unknown, TResult = unknown> {
   toolName: string;
-  render: ComponentType<{ input: TInput; output?: TOutput; state?: string }>;
-  fallback?: ComponentType;
+  render: ToolUIRendererComponent<TArgs, TResult>;
 }
 
 /**
- * Register a custom UI component for a specific tool.
- * Automatically unregisters on unmount.
+ * Register a custom renderer for a specific tool.
+ *
+ * The renderer is registered when the component mounts and automatically
+ * unregistered when it unmounts. If toolName changes, the old registration
+ * is cleaned up and a new one is created.
  *
  * @example
  * ```tsx
  * useToolUI({
- *   toolName: "websearch",
- *   render: WebSearchCard,
+ *   toolName: "web_search",
+ *   render: ({ input, output, state }) => (
+ *     <SearchCard query={input?.query} results={output} loading={state === "input-streaming"} />
+ *   ),
  * });
  * ```
  */
-export function useToolUI<TInput = unknown, TOutput = unknown>(
-  options: UseToolUIOptions<TInput, TOutput>,
+export function useToolUI<TArgs = unknown, TResult = unknown>(
+  options: UseToolUIOptions<TArgs, TResult> | null,
 ): void {
-  const { registry } = useAgentUI();
+  const { toolUIRegistry } = useChatContext();
 
   useEffect(() => {
-    return registry.registerToolUI({
-      toolName: options.toolName,
-      render: options.render,
-      fallback: options.fallback,
-    });
-  }, [registry, options.toolName, options.render, options.fallback]);
+    if (!options?.toolName || !options?.render) return undefined;
+    return toolUIRegistry.register(options.toolName, options.render);
+  }, [toolUIRegistry, options?.toolName, options?.render]);
 }

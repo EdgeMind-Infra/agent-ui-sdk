@@ -1,3 +1,4 @@
+import path from "node:path";
 import { defineConfig } from "tsdown";
 
 export default defineConfig({
@@ -7,5 +8,7 @@ export default defineConfig({
   hash: false,
   clean: true,
   sourcemap: true,
-  external: ["react", "react-dom", "@ai-sdk/react"],
+  alias: {
+    src: path.resolve(import.meta.dirname, "src"),
+  },
 });

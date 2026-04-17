@@ -7,5 +7,4 @@ export default defineConfig({
   hash: false,
   clean: true,
   sourcemap: true,
-  external: ["react", "react-native", "@ai-sdk/react"],
 });

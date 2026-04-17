@@ -1,62 +1,60 @@
+import type { UIMessage } from "ai";
+
 /**
- * Shared message and part types — platform-agnostic.
- *
- * These types are designed to be compatible with AI SDK v6's UIMessage
- * but do not depend on it directly, allowing framework-agnostic usage.
+ * A node in the message tree structure.
  */
-
-/** A single text content part */
-export interface TextPart {
-  type: "text";
-  text: string;
+export interface MessageNode {
+  message: UIMessage;
+  parentId: string | null;
+  childIds: string[];
+  /** Index of the currently active child branch. */
+  activeBranchIndex: number;
 }
 
-/** A reasoning/thinking part (CoT) */
-export interface ReasoningPart {
-  type: "reasoning";
-  text: string;
-  /** Whether the reasoning is still streaming */
-  isStreaming?: boolean;
+/**
+ * Serializable format for persistence.
+ */
+export interface ExportedMessage {
+  message: UIMessage;
+  parentId: string | null;
 }
 
-/** A tool call part */
-export interface ToolCallPart {
-  type: "tool-call";
-  toolCallId: string;
-  toolName: string;
-  args: unknown;
-  result?: unknown;
-  state?: "partial-call" | "call" | "result" | "error";
-  /** Parent tool call ID for nested agent patterns */
-  parentToolCallId?: string;
-}
-
-/** A named data part (for custom UI rendering) */
-export interface DataPart<T = unknown> {
-  type: "data";
-  name: string;
-  data: T;
-}
-
-/** A source/citation part */
-export interface SourcePart {
-  type: "source";
-  url: string;
-  title?: string;
-  description?: string;
-}
-
-/** Union of all supported message part types */
-export type MessagePart = TextPart | ReasoningPart | ToolCallPart | DataPart | SourcePart;
-
-/** Role of a message */
-export type MessageRole = "user" | "assistant" | "system";
-
-/** A single message in a conversation */
-export interface BaseMessage {
+/**
+ * Metadata for a conversation thread.
+ */
+export interface ThreadMetadata {
   id: string;
-  role: MessageRole;
-  parts: MessagePart[];
-  createdAt?: Date;
-  metadata?: Record<string, unknown>;
+  title?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  favorited?: boolean;
+  extra?: Record<string, unknown>;
+}
+
+/**
+ * Adapter for persisting thread message history.
+ */
+export interface ThreadHistoryAdapter {
+  load(threadId: string): Promise<ExportedMessage[]>;
+  append(threadId: string, messages: ExportedMessage[]): Promise<void>;
+  save(threadId: string, messages: ExportedMessage[]): Promise<void>;
+}
+
+/**
+ * Filter type for thread list queries.
+ * "all" returns everything; other values filter by the corresponding property.
+ */
+export type ThreadFilterType = "all" | "favorited";
+
+/**
+ * Adapter for managing the list of threads.
+ */
+export interface ThreadListAdapter {
+  list(filter?: ThreadFilterType): Promise<ThreadMetadata[]>;
+  create(metadata?: Partial<ThreadMetadata>): Promise<ThreadMetadata>;
+  rename(threadId: string, title: string): Promise<void>;
+  delete(threadId: string): Promise<void>;
+  favorite(threadId: string): Promise<void>;
+  unfavorite(threadId: string): Promise<void>;
+  update?(threadId: string, patch: Partial<ThreadMetadata>): Promise<void>;
 }

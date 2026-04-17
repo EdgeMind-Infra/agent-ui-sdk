@@ -1,11 +1,15 @@
 {
   "name": "@agent-ui-sdk/react-native",
   "version": "0.1.0",
-  "description": "React Native bindings for Agent UI SDK — hooks for tool/data UI registration, message branching, and AI SDK integration",
+  "description": "React Native components for Agent UI SDK — styled, ready-to-use AI chat UI",
   "type": "module",
   "sideEffects": false,
   "exports": {
     ".": {
+      "react-native": {
+        "types": "./dist/index.d.ts",
+        "default": "./src/index.ts"
+      },
       "import": {
         "types": "./dist/index.d.ts",
         "default": "./dist/index.js"
@@ -14,10 +18,31 @@
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
+    },
+    "./chat": {
+      "react-native": "./src/chat/chat.tsx",
+      "default": "./src/chat/chat.tsx"
+    },
+    "./chat/provider": {
+      "react-native": "./src/chat/chat-provider.tsx",
+      "default": "./src/chat/chat-provider.tsx"
+    },
+    "./chat/parts": {
+      "react-native": "./src/chat/parts/index.ts",
+      "default": "./src/chat/parts/index.ts"
+    },
+    "./types": {
+      "react-native": "./src/types.ts",
+      "default": "./src/types.ts"
+    },
+    "./ui/text": {
+      "react-native": "./src/ui/text.tsx",
+      "default": "./src/ui/text.tsx"
     }
   },
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
+  "react-native": "./src/index.ts",
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
@@ -26,28 +51,52 @@
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@agent-ui-sdk/core": "workspace:*"
+    "@agent-ui-sdk/core": "workspace:*",
+    "@rn-primitives/collapsible": "^1.2.0",
+    "@rn-primitives/slot": "^1.2.0",
+    "@rn-primitives/types": "^1.2.0",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.0",
+    "tailwind-merge": "^3.5.0"
   },
   "peerDependencies": {
+    "@ai-sdk/react": ">=3.0.0",
+    "ai": ">=6.0.0",
+    "lucide-react-native": ">=0.400.0",
+    "nativewind": ">=5.0.0-preview.0",
     "react": "^18.0.0 || ^19.0.0",
-    "react-native": "*",
-    "@ai-sdk/react": ">=3.0.0"
+    "react-native": ">=0.79.0",
+    "react-native-css": "^3.0.1",
+    "react-native-reanimated": ">=3.0.0",
+    "react-native-svg": ">=12.0.0",
+    "streamdown-rn": ">=0.2.0",
+    "@shopify/flash-list": ">=2.0.0",
+    "tailwindcss": "^4.0.0"
   },
   "peerDependenciesMeta": {
-    "@ai-sdk/react": {
+    "lucide-react-native": {
+      "optional": true
+    },
+    "streamdown-rn": {
+      "optional": true
+    },
+    "@shopify/flash-list": {
+      "optional": true
+    },
+    "react-native-reanimated": {
       "optional": true
     }
   },
   "devDependencies": {
-    "@agent-ui-sdk/build-utils": "workspace:*",
     "@types/react": "^19.0.0",
-    "react": "^19.0.0",
-    "react-native": "^0.78.0",
     "tsdown": "^0.12.0",
-    "typescript": "^5.8.0"
+    "typescript": "^5.8.0",
+    "vitest": "^3.2.0"
   },
   "publishConfig": {
     "access": "public",

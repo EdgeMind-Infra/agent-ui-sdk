@@ -20,3 +20,8 @@ Thumbs.db
 
 # Coverage
 coverage/
+
+**/openspec
+**/.obsidian
+**/.claude
+**/.next
