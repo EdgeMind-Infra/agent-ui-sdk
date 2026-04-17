@@ -1,6 +1,6 @@
 {
   "name": "@agent-ui-sdk/core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Platform-agnostic core for Agent UI SDK — segment engine, UI registry, types",
   "type": "module",
   "sideEffects": false,

@@ -77,6 +77,12 @@ export interface ThreadListActions {
   favoriteThread(threadId: string): Promise<void>;
   unfavoriteThread(threadId: string): Promise<void>;
   setFilter(filter: ThreadFilterType): Promise<void>;
+  /**
+   * Re-fetch the thread list under the current filter. Intended for external
+   * triggers such as "立即运行" on a scheduled task so the sidebar reflects
+   * freshly created tasks without waiting for the polling interval.
+   */
+  refreshThreadList(): Promise<void>;
 }
 
 // ===== Context =====
@@ -106,9 +112,34 @@ export function useThreadList(): ThreadListContextValue {
 export interface ThreadListProviderProps {
   threadListAdapter: ThreadListAdapter;
   children: ReactNode;
+  /**
+   * Milliseconds between background refreshes of the thread list. Default
+   * undefined = disabled. Setting ~60000 is a reasonable floor for catching
+   * cron-triggered scheduled tasks without hammering the API.
+   */
+  refetchInterval?: number;
+  /**
+   * When true, refresh on window focus. Catches the common case where a user
+   * tabs away, a cron fires, and they come back expecting fresh state.
+   * Default true.
+   */
+  refetchOnWindowFocus?: boolean;
+  /**
+   * When true, listen on a `BroadcastChannel('task-list')` for `{type:
+   * 'refresh'}` messages. Lets the settings page (in a different tab) nudge
+   * the main app to refresh after `runNow`, without plumbing through a
+   * server-side push channel.
+   */
+  enableBroadcastChannel?: boolean;
 }
 
-export function ThreadListProvider({ threadListAdapter, children }: ThreadListProviderProps) {
+export function ThreadListProvider({
+  threadListAdapter,
+  children,
+  refetchInterval,
+  refetchOnWindowFocus = true,
+  enableBroadcastChannel = false,
+}: ThreadListProviderProps) {
   const [state, dispatch] = useReducer(threadListReducer, {
     threads: [],
     activeThreadId: null,
@@ -195,6 +226,75 @@ export function ThreadListProvider({ threadListAdapter, children }: ThreadListPr
     [threadListAdapter],
   );
 
+  const refreshThreadList = useCallback(async () => {
+    const threads = await threadListAdapter.list(state.activeFilter);
+    dispatch({ type: "SET_THREADS", threads });
+  }, [threadListAdapter, state.activeFilter]);
+
+  // Background polling. Paused when the document is hidden so idle tabs
+  // don't burn requests; resumes automatically on visibilitychange.
+  useEffect(() => {
+    if (!refetchInterval || refetchInterval <= 0) return;
+    let timer: ReturnType<typeof setInterval> | null = null;
+    const start = () => {
+      if (timer) return;
+      timer = setInterval(() => {
+        void refreshThreadList();
+      }, refetchInterval);
+    };
+    const stop = () => {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") start();
+      else stop();
+    };
+    if (typeof document !== "undefined" && document.visibilityState === "visible") {
+      start();
+    }
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", onVisibility);
+    }
+    return () => {
+      stop();
+      if (typeof document !== "undefined") {
+        document.removeEventListener("visibilitychange", onVisibility);
+      }
+    };
+  }, [refetchInterval, refreshThreadList]);
+
+  // Refresh on window focus — catches cron-triggered tasks while the user
+  // was away. Separate from polling so each setting can be toggled alone.
+  useEffect(() => {
+    if (!refetchOnWindowFocus || typeof window === "undefined") return;
+    const onFocus = () => {
+      void refreshThreadList();
+    };
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [refetchOnWindowFocus, refreshThreadList]);
+
+  // Cross-tab refresh via BroadcastChannel. Useful when the settings page
+  // (possibly opened in another tab) triggers `runNow` — it broadcasts and
+  // the main app refreshes without waiting for its polling cycle.
+  useEffect(() => {
+    if (!enableBroadcastChannel || typeof BroadcastChannel === "undefined") return;
+    const bc = new BroadcastChannel("task-list");
+    const onMessage = (event: MessageEvent) => {
+      if (event.data && typeof event.data === "object" && event.data.type === "refresh") {
+        void refreshThreadList();
+      }
+    };
+    bc.addEventListener("message", onMessage);
+    return () => {
+      bc.removeEventListener("message", onMessage);
+      bc.close();
+    };
+  }, [enableBroadcastChannel, refreshThreadList]);
+
   const actions = useMemo<ThreadListActions>(
     () => ({
       createThread,
@@ -205,6 +305,7 @@ export function ThreadListProvider({ threadListAdapter, children }: ThreadListPr
       favoriteThread,
       unfavoriteThread,
       setFilter,
+      refreshThreadList,
     }),
     [
       createThread,
@@ -215,6 +316,7 @@ export function ThreadListProvider({ threadListAdapter, children }: ThreadListPr
       favoriteThread,
       unfavoriteThread,
       setFilter,
+      refreshThreadList,
     ],
   );
 
