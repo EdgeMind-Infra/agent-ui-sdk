@@ -1,6 +1,6 @@
 {
   "name": "@agent-ui-sdk/react",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "React web components for Agent UI SDK — styled, ready-to-use AI chat UI",
   "type": "module",
   "sideEffects": false,

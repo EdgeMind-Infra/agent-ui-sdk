@@ -43,8 +43,12 @@ export interface ThreadHistoryAdapter {
 /**
  * Filter type for thread list queries.
  * "all" returns everything; other values filter by the corresponding property.
+ *
+ * Adding `"scheduled"` here so apps filtering by scheduled-task origin no
+ * longer need `filter as string` escape hatches; the adapter is expected to
+ * translate this into `isScheduled: true` on the backend query.
  */
-export type ThreadFilterType = "all" | "favorited";
+export type ThreadFilterType = "all" | "favorited" | "scheduled";
 
 /**
  * Adapter for managing the list of threads.
