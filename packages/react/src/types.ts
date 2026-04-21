@@ -197,6 +197,13 @@ export interface ChatMessageProps {
 export interface ChatInputProps {
   className?: string;
   ref?: import("react").Ref<ChatInputHandle>;
+  /**
+   * Text to insert into the editor exactly once, when it first becomes
+   * ready. Useful for prefilling the input from external state after
+   * navigation. Subsequent changes are ignored — callers must clear the
+   * external source themselves so it doesn't overwrite user input.
+   */
+  initialContent?: string;
 }
 
 /**
@@ -422,4 +429,13 @@ export interface RichPromptInputProps {
   embedded?: boolean;
   /** Called when the editor empty state changes. Used by ChatInput to disable submit button. */
   onEmptyChange?: (isEmpty: boolean) => void;
+  /**
+   * Content to insert into the editor exactly once, when the editor first
+   * becomes ready. Useful for prefilling the input from external state
+   * (e.g. a recommended prompt after navigation). Changes to this prop
+   * AFTER the editor has initialized are ignored — callers must clear the
+   * external source in their own effect so it doesn't keep overwriting
+   * what the user has typed.
+   */
+  initialContent?: string;
 }

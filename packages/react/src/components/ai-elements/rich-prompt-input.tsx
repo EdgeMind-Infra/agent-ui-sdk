@@ -245,6 +245,7 @@ export function RichPromptInput({
   autoFocus = true,
   embedded = false,
   onEmptyChange,
+  initialContent,
   ref,
 }: RichPromptInputProps & { ref?: Ref<RichPromptInputHandle> }) {
   const chatHelpersFromCtx = useChatHelpersFromContext();
@@ -401,6 +402,27 @@ export function RichPromptInput({
       editor.setEditable(!disabled);
     }
   }, [editor, disabled]);
+
+  // Apply initialContent exactly once when the editor first becomes ready.
+  // Because useEditor({ immediatelyRender: false }) initializes the editor
+  // asynchronously after mount, callers who rely on imperative setContent()
+  // immediately after render would silently fail (editor is null on first
+  // pass). This prop lets callers declaratively pass the initial text and
+  // have it applied reliably.
+  //
+  // We capture initialContent into a ref at mount time so later prop changes
+  // (e.g. caller clearing its source state right after render) don't race
+  // the editor initialization.
+  const initialContentRef = useRef(initialContent);
+  const initialContentAppliedRef = useRef(false);
+  useEffect(() => {
+    if (!editor || initialContentAppliedRef.current) return;
+    const content = initialContentRef.current;
+    if (content) {
+      editor.chain().focus().clearContent().insertContent(content).run();
+    }
+    initialContentAppliedRef.current = true;
+  }, [editor]);
 
   const isStreaming = chatHelpers?.status === "streaming";
 

@@ -138,7 +138,7 @@ function ModelItem({
 // ChatInput
 // ============================================================================
 
-export function ChatInput({ className, ref }: ChatInputProps) {
+export function ChatInput({ className, ref, initialContent }: ChatInputProps) {
   const { chatHelpers, config } = useChatContext();
   const { sendMessage, stop: rawStop, status } = chatHelpers;
   const labels = { ...DEFAULT_CHAT_LABELS, ...config.labels };
@@ -327,6 +327,7 @@ export function ChatInput({ className, ref }: ChatInputProps) {
               disabled={false}
               autoFocus
               embedded
+              initialContent={initialContent}
             />
           </PromptInputBody>
           <PromptInputFooter>
