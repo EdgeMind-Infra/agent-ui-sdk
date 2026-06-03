@@ -54,6 +54,7 @@
   },
   "peerDependencies": {
     "@ai-sdk/react": ">=3.0.0",
+    "@tanstack/react-query": ">=5.0.0",
     "@tiptap/core": ">=3.20.0",
     "@tiptap/extension-mention": ">=3.20.0",
     "@tiptap/extension-placeholder": ">=3.20.0",
@@ -90,6 +91,7 @@
   },
   "devDependencies": {
     "@ai-sdk/react": "^3.0.113",
+    "@tanstack/react-query": "^5.90.21",
     "@tiptap/core": "^3.20.1",
     "@tiptap/extension-mention": "^3.20.1",
     "@tiptap/extension-placeholder": "^3.20.1",

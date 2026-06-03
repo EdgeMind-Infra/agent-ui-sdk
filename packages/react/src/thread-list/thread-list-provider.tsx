@@ -1,6 +1,7 @@
 "use client";
 
 import type { ThreadFilterType, ThreadListAdapter, ThreadMetadata } from "@agent-ui-sdk/core";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createContext,
   type ReactNode,
@@ -8,62 +9,17 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useReducer,
+  useRef,
+  useState,
 } from "react";
 
-// ===== State & Actions =====
+// ===== State shape (kept for backward-compat with consumers importing it) =====
 
 export interface ThreadListState {
   threads: ThreadMetadata[];
   activeThreadId: string | null;
   isLoading: boolean;
   activeFilter: ThreadFilterType;
-}
-
-type ThreadListAction =
-  | { type: "SET_THREADS"; threads: ThreadMetadata[] }
-  | { type: "SET_LOADING"; isLoading: boolean }
-  | { type: "SET_ACTIVE"; threadId: string | null }
-  | { type: "SET_FILTER"; filter: ThreadFilterType }
-  | { type: "ADD_THREAD"; thread: ThreadMetadata }
-  | { type: "UPDATE_THREAD"; threadId: string; updates: Partial<ThreadMetadata> }
-  | { type: "REMOVE_THREAD"; threadId: string };
-
-function threadListReducer(state: ThreadListState, action: ThreadListAction): ThreadListState {
-  switch (action.type) {
-    case "SET_THREADS":
-      return { ...state, threads: action.threads, isLoading: false };
-    case "SET_LOADING":
-      return { ...state, isLoading: action.isLoading };
-    case "SET_ACTIVE":
-      return { ...state, activeThreadId: action.threadId };
-    case "SET_FILTER":
-      return { ...state, activeFilter: action.filter };
-    case "ADD_THREAD":
-      return {
-        ...state,
-        threads: [action.thread, ...state.threads],
-        activeThreadId: action.thread.id,
-      };
-    case "UPDATE_THREAD":
-      return {
-        ...state,
-        threads: state.threads.map((t) =>
-          t.id === action.threadId ? { ...t, ...action.updates, updatedAt: new Date() } : t,
-        ),
-      };
-    case "REMOVE_THREAD": {
-      const filtered = state.threads.filter((t) => t.id !== action.threadId);
-      const needSwitch = state.activeThreadId === action.threadId;
-      return {
-        ...state,
-        threads: filtered,
-        activeThreadId: needSwitch ? (filtered[0]?.id ?? null) : state.activeThreadId,
-      };
-    }
-    default:
-      return state;
-  }
 }
 
 // ===== Actions interface =====
@@ -107,6 +63,12 @@ export function useThreadList(): ThreadListContextValue {
   return ctx;
 }
 
+// ===== React Query keys =====
+
+const THREAD_LIST_KEY = "agent-ui-sdk:thread-list";
+/** 所有 filter 共享前缀,便于一次性 invalidate 全部视图。 */
+const threadListKey = (filter: ThreadFilterType) => [THREAD_LIST_KEY, filter] as const;
+
 // ===== Provider =====
 
 export interface ThreadListProviderProps {
@@ -133,6 +95,14 @@ export interface ThreadListProviderProps {
   enableBroadcastChannel?: boolean;
 }
 
+/**
+ * Thread list state — backed by React Query.
+ *
+ * 列表数据走 useQuery(轮询 / focus 刷新 / 缓存 / dedup 全由 RQ 负责);本地仅保留
+ * 两个 UI 状态:`activeFilter`(查询 key)与 `activeThreadId`(当前激活的会话)。
+ * 变更操作通过 setQueryData 乐观更新或 invalidate 重拉。对外 `useThreadList()` 接口
+ * 与行为保持不变。共用消费方的 QueryClient,因此缓存与 app 的 React Query 一致。
+ */
 export function ThreadListProvider({
   threadListAdapter,
   children,
@@ -140,152 +110,128 @@ export function ThreadListProvider({
   refetchOnWindowFocus = true,
   enableBroadcastChannel = false,
 }: ThreadListProviderProps) {
-  const [state, dispatch] = useReducer(threadListReducer, {
-    threads: [],
-    activeThreadId: null,
-    isLoading: true,
-    activeFilter: "all",
+  const queryClient = useQueryClient();
+  const [activeFilter, setActiveFilter] = useState<ThreadFilterType>("all");
+  const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
+
+  const query = useQuery({
+    queryKey: threadListKey(activeFilter),
+    queryFn: () => threadListAdapter.list(activeFilter),
+    refetchInterval: refetchInterval && refetchInterval > 0 ? refetchInterval : false,
+    refetchOnWindowFocus,
+    // refetchIntervalInBackground 默认 false → RQ 在窗口失焦时自动暂停轮询。
   });
 
-  // Load thread list on mount
+  const threads = useMemo(() => query.data ?? [], [query.data]);
+
+  // 首次加载后默认激活最近的会话(保留旧 provider 行为);仅在尚未有激活项时生效一次。
+  const didAutoSelect = useRef(false);
   useEffect(() => {
-    let cancelled = false;
-    threadListAdapter.list().then((threads) => {
-      if (cancelled) return;
-      dispatch({ type: "SET_THREADS", threads });
-      // Auto-select most recent thread
-      if (threads.length > 0) {
-        dispatch({ type: "SET_ACTIVE", threadId: threads[0]!.id });
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [threadListAdapter]);
+    if (didAutoSelect.current) return;
+    if (activeThreadId !== null) {
+      didAutoSelect.current = true;
+      return;
+    }
+    if (threads.length > 0) {
+      setActiveThreadId(threads[0]!.id);
+      didAutoSelect.current = true;
+    }
+  }, [threads, activeThreadId]);
+
+  /** 直接改当前 filter 缓存(乐观/本地更新)。 */
+  const patchCurrent = useCallback(
+    (updater: (prev: ThreadMetadata[]) => ThreadMetadata[]) => {
+      queryClient.setQueryData<ThreadMetadata[]>(threadListKey(activeFilter), (prev) =>
+        updater(prev ?? []),
+      );
+    },
+    [queryClient, activeFilter],
+  );
+
+  const refreshThreadList = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: [THREAD_LIST_KEY] });
+  }, [queryClient]);
 
   const createThread = useCallback(
     async (metadata?: Partial<ThreadMetadata>) => {
       const thread = await threadListAdapter.create(metadata);
-      dispatch({ type: "ADD_THREAD", thread });
+      // 取消所有 filter 在途 refetch:若有一个在 create 之前发出、之后才 resolve 的列表
+      // 拉取,它会用(尚不含新会话的)旧服务端列表整体覆盖下面的乐观插入,导致新会话瞬间
+      // 消失。cancelQueries 默认 revert:true,abort 在途请求使其不再回填(RQ 官方乐观做法)。
+      await queryClient.cancelQueries({ queryKey: [THREAD_LIST_KEY] });
+      // 乐观置顶(等价旧 ADD_THREAD)+ 激活;adapter.create 已保证 updatedAt=now。
+      patchCurrent((prev) => [thread, ...prev.filter((t) => t.id !== thread.id)]);
+      setActiveThreadId(thread.id);
       return thread;
     },
-    [threadListAdapter],
+    [threadListAdapter, patchCurrent, queryClient],
   );
 
   const switchThread = useCallback((threadId: string) => {
-    dispatch({ type: "SET_ACTIVE", threadId });
+    setActiveThreadId(threadId);
   }, []);
 
   const renameThread = useCallback(
     async (threadId: string, title: string) => {
       await threadListAdapter.rename(threadId, title);
-      dispatch({ type: "UPDATE_THREAD", threadId, updates: { title } });
+      patchCurrent((prev) =>
+        prev.map((t) => (t.id === threadId ? { ...t, title, updatedAt: new Date() } : t)),
+      );
     },
-    [threadListAdapter],
+    [threadListAdapter, patchCurrent],
   );
 
   const deleteThread = useCallback(
     async (threadId: string) => {
       await threadListAdapter.delete(threadId);
-      dispatch({ type: "REMOVE_THREAD", threadId });
+      const next = (
+        queryClient.getQueryData<ThreadMetadata[]>(threadListKey(activeFilter)) ?? []
+      ).filter((t) => t.id !== threadId);
+      queryClient.setQueryData(threadListKey(activeFilter), next);
+      // 删除的是当前激活会话时,切到列表第一个(等价旧 REMOVE_THREAD)。
+      setActiveThreadId((cur) => (cur === threadId ? (next[0]?.id ?? null) : cur));
     },
-    [threadListAdapter],
+    [threadListAdapter, queryClient, activeFilter],
   );
 
-  const updateThread = useCallback((threadId: string, updates: Partial<ThreadMetadata>) => {
-    dispatch({ type: "UPDATE_THREAD", threadId, updates });
-  }, []);
+  const updateThread = useCallback(
+    (threadId: string, updates: Partial<ThreadMetadata>) => {
+      patchCurrent((prev) =>
+        prev.map((t) => (t.id === threadId ? { ...t, ...updates, updatedAt: new Date() } : t)),
+      );
+    },
+    [patchCurrent],
+  );
 
   const favoriteThread = useCallback(
     async (threadId: string) => {
       await threadListAdapter.favorite(threadId);
-      // Re-fetch with active filter to keep list consistent
-      const threads = await threadListAdapter.list(state.activeFilter);
-      dispatch({ type: "SET_THREADS", threads });
+      // 收藏可能影响多个视图(如 favorited),失效全部 filter 让其重拉。
+      await queryClient.invalidateQueries({ queryKey: [THREAD_LIST_KEY] });
     },
-    [threadListAdapter, state.activeFilter],
+    [threadListAdapter, queryClient],
   );
 
   const unfavoriteThread = useCallback(
     async (threadId: string) => {
       await threadListAdapter.unfavorite(threadId);
-      // Re-fetch with active filter (e.g., unfavoriting while in "favorited" view removes it)
-      const threads = await threadListAdapter.list(state.activeFilter);
-      dispatch({ type: "SET_THREADS", threads });
+      await queryClient.invalidateQueries({ queryKey: [THREAD_LIST_KEY] });
     },
-    [threadListAdapter, state.activeFilter],
+    [threadListAdapter, queryClient],
   );
 
-  const setFilter = useCallback(
-    async (filter: ThreadFilterType) => {
-      dispatch({ type: "SET_FILTER", filter });
-      dispatch({ type: "SET_LOADING", isLoading: true });
-      const threads = await threadListAdapter.list(filter);
-      dispatch({ type: "SET_THREADS", threads });
-    },
-    [threadListAdapter],
-  );
+  const setFilter = useCallback(async (filter: ThreadFilterType) => {
+    // 切 filter 即换 query key → RQ 自动拉取(有缓存先显缓存再后台刷新)。
+    setActiveFilter(filter);
+  }, []);
 
-  const refreshThreadList = useCallback(async () => {
-    const threads = await threadListAdapter.list(state.activeFilter);
-    dispatch({ type: "SET_THREADS", threads });
-  }, [threadListAdapter, state.activeFilter]);
-
-  // Background polling. Paused when the document is hidden so idle tabs
-  // don't burn requests; resumes automatically on visibilitychange.
-  useEffect(() => {
-    if (!refetchInterval || refetchInterval <= 0) return;
-    let timer: ReturnType<typeof setInterval> | null = null;
-    const start = () => {
-      if (timer) return;
-      timer = setInterval(() => {
-        void refreshThreadList();
-      }, refetchInterval);
-    };
-    const stop = () => {
-      if (timer) {
-        clearInterval(timer);
-        timer = null;
-      }
-    };
-    const onVisibility = () => {
-      if (document.visibilityState === "visible") start();
-      else stop();
-    };
-    if (typeof document !== "undefined" && document.visibilityState === "visible") {
-      start();
-    }
-    if (typeof document !== "undefined") {
-      document.addEventListener("visibilitychange", onVisibility);
-    }
-    return () => {
-      stop();
-      if (typeof document !== "undefined") {
-        document.removeEventListener("visibilitychange", onVisibility);
-      }
-    };
-  }, [refetchInterval, refreshThreadList]);
-
-  // Refresh on window focus — catches cron-triggered tasks while the user
-  // was away. Separate from polling so each setting can be toggled alone.
-  useEffect(() => {
-    if (!refetchOnWindowFocus || typeof window === "undefined") return;
-    const onFocus = () => {
-      void refreshThreadList();
-    };
-    window.addEventListener("focus", onFocus);
-    return () => window.removeEventListener("focus", onFocus);
-  }, [refetchOnWindowFocus, refreshThreadList]);
-
-  // Cross-tab refresh via BroadcastChannel. Useful when the settings page
-  // (possibly opened in another tab) triggers `runNow` — it broadcasts and
-  // the main app refreshes without waiting for its polling cycle.
+  // 跨标签页刷新:settings 页(可能在另一个 tab)触发 runNow 后广播,主应用立即失效重拉。
   useEffect(() => {
     if (!enableBroadcastChannel || typeof BroadcastChannel === "undefined") return;
     const bc = new BroadcastChannel("task-list");
     const onMessage = (event: MessageEvent) => {
       if (event.data && typeof event.data === "object" && event.data.type === "refresh") {
-        void refreshThreadList();
+        void queryClient.invalidateQueries({ queryKey: [THREAD_LIST_KEY] });
       }
     };
     bc.addEventListener("message", onMessage);
@@ -293,7 +239,7 @@ export function ThreadListProvider({
       bc.removeEventListener("message", onMessage);
       bc.close();
     };
-  }, [enableBroadcastChannel, refreshThreadList]);
+  }, [enableBroadcastChannel, queryClient]);
 
   const actions = useMemo<ThreadListActions>(
     () => ({
@@ -322,13 +268,13 @@ export function ThreadListProvider({
 
   const value = useMemo<ThreadListContextValue>(
     () => ({
-      threads: state.threads,
-      activeThreadId: state.activeThreadId,
-      isLoading: state.isLoading,
-      activeFilter: state.activeFilter,
+      threads,
+      activeThreadId,
+      isLoading: query.isLoading,
+      activeFilter,
       actions,
     }),
-    [state.threads, state.activeThreadId, state.isLoading, state.activeFilter, actions],
+    [threads, activeThreadId, query.isLoading, activeFilter, actions],
   );
 
   return <ThreadListContext value={value}>{children}</ThreadListContext>;
