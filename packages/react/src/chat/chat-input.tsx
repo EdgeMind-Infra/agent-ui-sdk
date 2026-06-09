@@ -41,7 +41,7 @@ import {
 import { Suggestion, Suggestions } from "src/components/ai-elements/suggestion";
 import { cn } from "src/lib/utils";
 import { RichPromptInput } from "../components/ai-elements/rich-prompt-input";
-import type { ChatInputHandle, RichPromptInputHandle, RichPromptInputSubmitPayload } from "../types";
+import type { RichPromptInputHandle, RichPromptInputSubmitPayload } from "../types";
 import { type ChatInputProps, DEFAULT_CHAT_LABELS, type ModelConfig } from "../types";
 import { useChatContext } from "./chat-provider";
 
@@ -409,7 +409,11 @@ export function ChatInput({ className, ref, initialContent }: ChatInputProps) {
                 />
               )}
               <PromptInputSubmit
-                disabled={editorEmpty && status !== "streaming" && status !== "submitted"}
+                disabled={
+                  (config.sendDisabled || editorEmpty) &&
+                  status !== "streaming" &&
+                  status !== "submitted"
+                }
                 status={status}
                 onStop={stop}
                 tooltip={labels.send}

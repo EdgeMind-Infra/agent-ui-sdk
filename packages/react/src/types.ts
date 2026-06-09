@@ -110,6 +110,13 @@ export interface ChatConfig {
   /** Enable file attachments in the input. */
   enableAttachments?: boolean;
 
+  /**
+   * When true, the submit (send) button is disabled regardless of editor content.
+   * Used to gate sending until external preconditions are met (e.g. a required
+   * selection). Does NOT affect the Stop button shown during streaming/submitted.
+   */
+  sendDisabled?: boolean;
+
   /** Dictation adapter for speech-to-text. When provided, a microphone button appears next to submit. */
   dictationAdapter?: DictationAdapter;
 
