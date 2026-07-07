@@ -65,7 +65,11 @@ export function useThreadList(): ThreadListContextValue {
 
 // ===== React Query keys =====
 
-const THREAD_LIST_KEY = "agent-ui-sdk:thread-list";
+/**
+ * Thread list 的 query key 前缀。导出给宿主应用从 SDK 外部失效列表用
+ * (例如服务端推送的数据同步总线收到 task 变更事件时)。
+ */
+export const THREAD_LIST_KEY = "agent-ui-sdk:thread-list";
 /** 所有 filter 共享前缀,便于一次性 invalidate 全部视图。 */
 const threadListKey = (filter: ThreadFilterType) => [THREAD_LIST_KEY, filter] as const;
 

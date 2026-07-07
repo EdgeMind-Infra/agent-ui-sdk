@@ -65,6 +65,7 @@ export type {
   ThreadListState,
 } from "./thread-list";
 export {
+  THREAD_LIST_KEY,
   ThreadListChatProvider,
   ThreadListProvider,
   ThreadListSidebar,
@@ -74,10 +75,10 @@ export type {
   ChatComponents,
   ChatConfig,
   ChatHelpers,
+  ChatInputHandle,
   ChatInputProps,
   ChatLabels,
   ChatMessageProps,
-  ChatInputHandle,
   ChatMessagesProps,
   ChatProps,
   CommandData,

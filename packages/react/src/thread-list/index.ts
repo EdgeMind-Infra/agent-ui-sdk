@@ -3,6 +3,7 @@ export {
   type ThreadListChatProviderProps,
 } from "./thread-list-chat-provider";
 export {
+  THREAD_LIST_KEY,
   type ThreadListActions,
   type ThreadListContextValue,
   ThreadListProvider,
