@@ -163,17 +163,6 @@ export function ChatMessage({
       title: part.title,
     }));
 
-  // Consolidate reasoning parts
-  const reasoningParts = message.parts.filter(
-    (part): part is Extract<typeof part, { type: "reasoning" }> => part.type === "reasoning",
-  );
-  const reasoningText = reasoningParts.map((part) => part.text).join("\n\n");
-  const hasReasoning = reasoningParts.length > 0;
-
-  // Check if reasoning is still streaming
-  const lastPart = message.parts.at(-1);
-  const isReasoningStreaming = isLastMessage && isStreaming && lastPart?.type === "reasoning";
-
   // Extract text for copy / edit
   const messageText = message.parts
     .filter((part): part is Extract<typeof part, { type: "text" }> => part.type === "text")
@@ -190,13 +179,24 @@ export function ChatMessage({
         {/* Sources at the top */}
         {sources.length > 0 && <SourcePartComponent sources={sources} />}
 
-        {/* Consolidated reasoning */}
-        {hasReasoning && (
-          <ReasoningPartComponent text={reasoningText} isStreaming={isReasoningStreaming} />
-        )}
-
-        {/* Text and tool parts in order */}
+        {/* Reasoning, text and tool parts in original stream order */}
         {message.parts.map((part, i) => {
+          if (part.type === "reasoning") {
+            const isThisReasoningStreaming =
+              part.state === "streaming" ||
+              (part.state === undefined &&
+                isLastMessage &&
+                isStreaming &&
+                i === message.parts.length - 1);
+            return (
+              <ReasoningPartComponent
+                key={`${message.id}-${i}`}
+                text={part.text}
+                isStreaming={isThisReasoningStreaming}
+              />
+            );
+          }
+
           if (part.type === "text") {
             return (
               <TextPartComponent
@@ -257,7 +257,7 @@ export function ChatMessage({
             );
           }
 
-          // reasoning and source-url are handled above, skip here
+          // source-url is handled above, skip here
           return null;
         })}
       </MessageContent>
