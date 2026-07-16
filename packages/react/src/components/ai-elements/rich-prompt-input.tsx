@@ -295,14 +295,24 @@ export function RichPromptInput({
               const label = (item as any)?.label ?? (item as any)?.name ?? String(item);
               const id = (item as any)?.id ?? label;
               const refType = (item as any)?.refType ?? defaultRefType;
-              editor
-                .chain()
-                .focus()
-                .insertContentAt(range, [
-                  { type: tagNodeType, attrs: { id, label, refType } },
-                  { type: "text", text: " " },
-                ])
-                .run();
+              // Whether to drop an inline chip. An item may override the
+              // trigger default (which itself defaults to true, preserving the
+              // long-standing behaviour). Set false to have selection just
+              // delete the typed "@query" and fire onSelect — e.g. a mention
+              // that adds a file card elsewhere rather than a reference chip.
+              const asTag = (item as any)?.insertAsTag ?? trigger.insertAsTag ?? true;
+              if (asTag) {
+                editor
+                  .chain()
+                  .focus()
+                  .insertContentAt(range, [
+                    { type: tagNodeType, attrs: { id, label, refType } },
+                    { type: "text", text: " " },
+                  ])
+                  .run();
+              } else {
+                editor.chain().focus().deleteRange(range).run();
+              }
               trigger.onSelect?.(item);
             },
           },
