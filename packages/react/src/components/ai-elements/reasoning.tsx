@@ -199,9 +199,10 @@ export const ReasoningContent = memo(({ className, children, ...props }: Reasoni
     )}
     {...props}
   >
-    <Streamdown plugins={streamdownPlugins} {...props}>
-      {children}
-    </Streamdown>
+    {/* Collapsible's props have no business on Streamdown — spreading them here was both a
+        props leak (id/style/slot landing on the markdown root) and a type error: Collapsible
+        types `dir` as string while Streamdown only accepts "auto" | "ltr" | "rtl". */}
+    <Streamdown plugins={streamdownPlugins}>{children}</Streamdown>
   </CollapsibleContent>
 ));
 

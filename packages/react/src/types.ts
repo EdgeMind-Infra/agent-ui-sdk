@@ -160,6 +160,9 @@ export interface ChatConfig {
 
   /** Get all branch versions for a message (including itself). Provided by useBranchedChat. */
   getBranches?: (messageId: string) => UIMessage[];
+  /** How many branch versions a message has (including itself). Allocation-free alternative to
+   *  `getBranches(id).length` for the "is a branch switcher needed?" check every message runs. */
+  getBranchCount?: (messageId: string) => number;
   /** Switch to a specific branch by message ID. Provided by useBranchedChat. */
   onSwitchBranch?: (messageId: string) => void;
 
@@ -191,6 +194,10 @@ export interface ChatConfig {
 export interface ChatMessageProps {
   message: UIMessage;
   isLastMessage: boolean;
+  /** Whether *this* message is the one currently streaming — not whether the chat is streaming.
+   *  Message lists pass `isStreaming && isLastMessage`, so it is always false for history: only
+   *  the last message renders differently while streaming, and handing the flag to the rest just
+   *  re-renders them every time streaming flips. */
   isStreaming: boolean;
   /** All branch versions of this message (including itself). */
   branches?: UIMessage[];

@@ -19,6 +19,9 @@ export interface UseBranchedChatReturn<UI_MESSAGE extends UIMessage = UIMessage>
   extends ChatHelpers<UI_MESSAGE> {
   /** Get all branch versions for a message (including itself). */
   getBranches: (messageId: string) => UIMessage[];
+  /** How many branch versions a message has. Allocation-free — prefer it for "are there
+   *  branches?" checks, which message lists run once per message per render. */
+  getBranchCount: (messageId: string) => number;
   /** Switch to a specific branch by message ID. */
   switchBranch: (messageId: string) => void;
   /** Restore checkpoint: truncates conversation to after a given message. */
@@ -43,6 +46,15 @@ export function useBranchedChat<UI_MESSAGE extends UIMessage = UIMessage>({
   threadId,
 }: UseBranchedChatOptions<UI_MESSAGE>): UseBranchedChatReturn<UI_MESSAGE> {
   const [repository] = useState(() => new MessageRepository());
+  // chatHelpers 每次渲染都是新对象(useChat 返回值 + 调用方 spread 包装)。
+  // 下面的 callback 若把它写进 deps,switchBranch/restoreCheckpoint 就会每帧换引用,
+  // 一路把 ChatConfig → ChatContext value 也带成新对象 → 整条消息列表的 memo 全部失效。
+  // 同 chat-provider:在 effect 里更新,避免渲染期写 ref(并发渲染下被丢弃的渲染会留下
+  // 指向未 commit 对象的 ref)。读取点都是用户交互回调,必然晚于 commit。
+  const chatHelpersRef = useRef(chatHelpers);
+  useEffect(() => {
+    chatHelpersRef.current = chatHelpers;
+  });
   const prevMessagesRef = useRef<UI_MESSAGE[]>([]);
   const isInternalUpdateRef = useRef(false);
   const [, forceRender] = useState(0);
@@ -155,6 +167,11 @@ export function useBranchedChat<UI_MESSAGE extends UIMessage = UIMessage>({
       const existing = repository.getNode(message.id);
 
       if (existing) {
+        // 流式期间 useChat 只替换正在生成的那一条,其余历史消息保持同一对象引用。
+        // 靠引用比较跳过它们 —— 否则每个 chunk 都要 O(总消息数) 地重写整棵树,
+        // 并把全部历史消息塞进待持久化队列(结果是每 300ms 把整段会话 POST 一遍)。
+        if (existing.message === message) continue;
+
         // Update existing message (e.g. streaming updates)
         repository.addOrUpdateMessage(existing.parentId, message);
 
@@ -178,7 +195,17 @@ export function useBranchedChat<UI_MESSAGE extends UIMessage = UIMessage>({
     }
 
     prevMessagesRef.current = curr;
-    forceRender((n) => n + 1);
+
+    // 只有可见路径的结构变了才需要重渲染 —— 新消息入树(getBranches 多出兄弟),或者消息被
+    // 截断(regenerate 会先砍掉助手那一轮,此时每条幸存消息都是同一引用、newMessages 为空,
+    // 只有长度变化能看出来)。流式内容更新不碰结构,消息本身早已由 useChat 自己推给了 UI。
+    // 每个 chunk 都 forceRender 的代价不是"多渲染一次"那么轻:它发生在 commit 阶段
+    // (SyncLane 更新会同步 flush passive effect),于是每次 commit 结束时 root 都还挂着
+    // pending 更新 → React 的 nestedUpdateCount 永远归不了零 → 消息一多、渲染一慢,
+    // 连续 50 次之后下一个 setState 直接抛 "Maximum update depth exceeded"(#185)。
+    if (newMessages.length > 0 || curr.length !== prev.length) {
+      forceRender((n) => n + 1);
+    }
 
     // Immediately append new messages
     if (historyAdapter && threadId && newMessages.length > 0) {
@@ -193,9 +220,17 @@ export function useBranchedChat<UI_MESSAGE extends UIMessage = UIMessage>({
     [repository],
   );
 
+  const getBranchCount = useCallback(
+    (messageId: string): number => {
+      return repository.getBranchCount(messageId);
+    },
+    [repository],
+  );
+
   const switchBranch = useCallback(
     (messageId: string) => {
-      if (!chatHelpers.setMessages) {
+      const setMessages = chatHelpersRef.current.setMessages;
+      if (!setMessages) {
         console.warn("useBranchedChat: setMessages is required for branch switching");
         return;
       }
@@ -204,16 +239,17 @@ export function useBranchedChat<UI_MESSAGE extends UIMessage = UIMessage>({
       const messages = repository.getMessages() as UI_MESSAGE[];
 
       isInternalUpdateRef.current = true;
-      chatHelpers.setMessages(messages);
+      setMessages(messages);
       prevMessagesRef.current = messages;
       forceRender((n) => n + 1);
     },
-    [repository, chatHelpers],
+    [repository],
   );
 
   const restoreCheckpoint = useCallback(
     (messageId: string) => {
-      if (!chatHelpers.setMessages) {
+      const setMessages = chatHelpersRef.current.setMessages;
+      if (!setMessages) {
         console.warn("useBranchedChat: setMessages is required for checkpoint restore");
         return;
       }
@@ -223,11 +259,11 @@ export function useBranchedChat<UI_MESSAGE extends UIMessage = UIMessage>({
 
       const truncated = repository.getMessages() as UI_MESSAGE[];
       isInternalUpdateRef.current = true;
-      chatHelpers.setMessages(truncated);
+      setMessages(truncated);
       prevMessagesRef.current = truncated;
       forceRender((n) => n + 1);
     },
-    [repository, chatHelpers],
+    [repository],
   );
 
   return {
@@ -244,6 +280,7 @@ export function useBranchedChat<UI_MESSAGE extends UIMessage = UIMessage>({
 
     // Branching additions
     getBranches,
+    getBranchCount,
     switchBranch,
     restoreCheckpoint,
     isHistoryLoading,

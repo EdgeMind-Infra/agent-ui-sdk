@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { memo, useCallback, useMemo } from "react";
 import {
   Reasoning,
   ReasoningContent,
@@ -8,11 +8,18 @@ import {
 } from "src/components/ai-elements/reasoning";
 import { Shimmer } from "src/components/ai-elements/shimmer";
 import { DEFAULT_CHAT_LABELS, type ReasoningPartProps } from "../../types";
-import { useChatContext } from "../chat-provider";
+import { useChatStatic } from "../chat-provider";
 
-export function ReasoningPart({ text, isStreaming }: ReasoningPartProps) {
-  const { config } = useChatContext();
-  const labels = { ...DEFAULT_CHAT_LABELS, ...config.labels };
+/** memo: same reasoning as TextPart — long <thinking> blocks run the full markdown pipeline, and
+ *  both props are primitives, so unchanged text should not re-render. */
+export const ReasoningPart = memo(function ReasoningPart({
+  text,
+  isStreaming,
+}: ReasoningPartProps) {
+  const { config } = useChatStatic();
+  // Spreading inline would allocate a new object per render and, since the callback below reads
+  // from it, recompute `getThinkingMessage` every time — which propagates into ReasoningTrigger.
+  const labels = useMemo(() => ({ ...DEFAULT_CHAT_LABELS, ...config.labels }), [config.labels]);
 
   const getThinkingMessage = useCallback(
     (streaming: boolean, duration?: number) => {
@@ -24,7 +31,6 @@ export function ReasoningPart({ text, isStreaming }: ReasoningPartProps) {
       }
       return <p>{labels.thoughtForSeconds(duration)}</p>;
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [labels.thinking, labels.thoughtForFewSeconds, labels.thoughtForSeconds],
   );
 
@@ -34,4 +40,4 @@ export function ReasoningPart({ text, isStreaming }: ReasoningPartProps) {
       <ReasoningContent>{text}</ReasoningContent>
     </Reasoning>
   );
-}
+});

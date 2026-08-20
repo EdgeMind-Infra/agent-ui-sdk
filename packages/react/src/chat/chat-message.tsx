@@ -8,7 +8,7 @@ import {
   ClipboardIcon,
   RefreshCwIcon,
 } from "lucide-react";
-import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
+import { memo, useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import { Message, MessageAction, MessageContent } from "src/components/ai-elements/message";
 import { Button } from "src/components/ui/button";
 import {
@@ -17,14 +17,14 @@ import {
   type ToolCallState,
   type ToolUIRendererComponent,
 } from "../types";
-import { useChatContext } from "./chat-provider";
+import { useChatStatic } from "./chat-provider";
 import { ReasoningPart as DefaultReasoningPart } from "./parts/reasoning-part";
 import { SourcePart as DefaultSourcePart } from "./parts/source-part";
 import { TextPart as DefaultTextPart } from "./parts/text-part";
 import { ToolPart as DefaultToolPart } from "./parts/tool-part";
 
 function CopyAction({ text, messageId }: { text: string; messageId: string }) {
-  const { config } = useChatContext();
+  const { config } = useChatStatic();
   const labels = { ...DEFAULT_CHAT_LABELS, ...config.labels };
   const [copied, setCopied] = useState(false);
 
@@ -46,7 +46,7 @@ function CopyAction({ text, messageId }: { text: string; messageId: string }) {
 }
 
 function RegenerateAction({ messageId }: { messageId: string }) {
-  const { config } = useChatContext();
+  const { config } = useChatStatic();
   const labels = { ...DEFAULT_CHAT_LABELS, ...config.labels };
 
   const handleRegenerate = useCallback(() => {
@@ -116,18 +116,25 @@ function extractToolName(part: { type: string; toolName?: string }): string {
   return part.type.replace(/^tool-/, "");
 }
 
-export function ChatMessage({
+/**
+ * memo: streaming replaces only the message object currently being generated — every other
+ * message keeps its identity. Without memo the whole history re-renders (markdown parsing and
+ * all) on every batch of chunks, which is what turns a long thread into a stuttering one.
+ * Relies on `useChatStatic()` above: subscribing to the full chat context would push a new
+ * value on every chunk and defeat the memo entirely.
+ */
+export const ChatMessage = memo(function ChatMessage({
   message,
   isLastMessage,
   isStreaming,
   branches,
   onSwitchBranch,
 }: ChatMessageProps) {
-  const { chatHelpers, components, config, toolUIRegistry, toolRenderers } = useChatContext();
+  const { chatActions, components, config, toolUIRegistry, toolRenderers } = useChatStatic();
 
   // Wrap addToolApprovalResponse: strip `extra` before passing to AI SDK, then fire the hook
   const wrappedAddToolApprovalResponse = useMemo(() => {
-    const original = chatHelpers.addToolApprovalResponse;
+    const original = chatActions.addToolApprovalResponse;
     if (!original) return undefined;
     return (opts: {
       id: string;
@@ -139,7 +146,7 @@ export function ChatMessage({
       original(sdkOpts);
       config.onToolApprovalResponse?.(opts);
     };
-  }, [chatHelpers.addToolApprovalResponse, config.onToolApprovalResponse]);
+  }, [chatActions.addToolApprovalResponse, config.onToolApprovalResponse]);
 
   // Subscribe to registry changes so we re-render when tools are registered/unregistered
   const registrySnapshot = useSyncExternalStore(
@@ -279,4 +286,4 @@ export function ChatMessage({
       )}
     </Message>
   );
-}
+});

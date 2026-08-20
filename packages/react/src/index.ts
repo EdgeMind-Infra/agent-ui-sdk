@@ -7,9 +7,14 @@ export { ChatInput } from "./chat/chat-input";
 export { ChatMessage } from "./chat/chat-message";
 export { ChatMessages } from "./chat/chat-messages";
 // Re-export ChatProvider types
-export type { ChatContextValue, ChatProviderProps } from "./chat/chat-provider";
+export type {
+  ChatActions,
+  ChatContextValue,
+  ChatProviderProps,
+  ChatStaticContextValue,
+} from "./chat/chat-provider";
 // Sub-components (for custom composition)
-export { ChatProvider, useChatContext } from "./chat/chat-provider";
+export { ChatProvider, useChatContext, useChatStatic } from "./chat/chat-provider";
 export { ReasoningPart } from "./chat/parts/reasoning-part";
 export { SourcePart } from "./chat/parts/source-part";
 // Part renderers (for custom composition or replacement)

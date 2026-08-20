@@ -37,7 +37,7 @@ export function ChatMessages({ className }: ChatMessagesProps) {
   const { chatHelpers, components, config } = useChatContext();
   const { messages, status } = chatHelpers;
   const isStreaming = status === "streaming";
-  const { getBranches, onSwitchBranch, onRestoreCheckpoint } = config;
+  const { getBranches, getBranchCount, onSwitchBranch, onRestoreCheckpoint } = config;
 
   const MessageComponent = components.Message ?? ChatMessage;
 
@@ -45,8 +45,13 @@ export function ChatMessages({ className }: ChatMessagesProps) {
     <Conversation className={className}>
       <ConversationContent className="max-w-3xl mx-auto">
         {messages.map((message, index) => {
-          const branches = getBranches?.(message.id);
           const isLast = index === messages.length - 1;
+          // Ask for the count first (allocation-free) and only materialise the array when there
+          // really are siblings to switch between. `getBranches()` returns a fresh array every
+          // call, so handing one to every message would give each a new prop identity per render
+          // and ChatMessage's memo would never hit.
+          const multiBranch =
+            (getBranchCount?.(message.id) ?? 0) > 1 ? getBranches?.(message.id) : undefined;
 
           const prevMessage = index > 0 ? messages[index - 1] : undefined;
           const showCheckpoint =
@@ -63,8 +68,8 @@ export function ChatMessages({ className }: ChatMessagesProps) {
                 <MessageComponent
                   message={message}
                   isLastMessage={isLast}
-                  isStreaming={isStreaming}
-                  branches={branches}
+                  isStreaming={isStreaming && isLast}
+                  branches={multiBranch}
                   onSwitchBranch={onSwitchBranch}
                 />
               </div>
@@ -76,8 +81,10 @@ export function ChatMessages({ className }: ChatMessagesProps) {
               key={message.id}
               message={message}
               isLastMessage={isLast}
-              isStreaming={isStreaming}
-              branches={branches}
+              // Only the last message renders differently while streaming; handing the flag to
+              // the history just makes it re-render whenever streaming flips.
+              isStreaming={isStreaming && isLast}
+              branches={multiBranch}
               onSwitchBranch={onSwitchBranch}
             />
           );

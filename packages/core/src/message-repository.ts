@@ -88,6 +88,22 @@ export class MessageRepository {
   }
 
   /**
+   * How many sibling branches a message has (including itself).
+   *
+   * Message lists ask this per message per render just to decide whether a branch switcher is
+   * needed, and the answer is 1 for nearly every message. Going through `getBranches()` for that
+   * allocates a throwaway array each time; this returns a number instead.
+   */
+  getBranchCount(messageId: string): number {
+    const node = this.nodes.get(messageId);
+    if (!node) return 0;
+
+    return node.parentId === null
+      ? this.rootChildIds.length
+      : (this.nodes.get(node.parentId)?.childIds.length ?? 0);
+  }
+
+  /**
    * Switch the active branch to the one containing `messageId`.
    * Updates the parent's activeBranchIndex and recomputes the head.
    */
